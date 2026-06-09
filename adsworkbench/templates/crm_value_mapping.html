@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}CRM 映射{% endblock %}
+{% block heading %}CRM 映射{% endblock %}
+{% block subheading %}把 CRM stage、buyer feedback、transaction_id、value mode、adjustment 和 import QA 转成 Ads 信号门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 CRM Value Mapping 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 Buyer A SQL to qualified mapping"></label>
+    <div class="split">
+      <label>Buyer<input name="buyer_name" placeholder="direct advertiser / buyer / network"></label>
+      <label>垂类<input name="vertical" value="b2b_saas"></label>
+    </div>
+    <div class="split">
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+      <label>Source system<input name="source_system" value="crm"></label>
+    </div>
+    <label>Buyer feedback source<input name="buyer_feedback_source" placeholder="buyer CSV / CRM export / invoice / postback report"></label>
+    <div class="split">
+      <label>Source stage<input name="source_stage" required placeholder="例如 SQL_ACCEPTED / approved / paid"></label>
+      <label>标准 stage
+        <select name="standard_stage">
+          <option value="submitted">submitted</option>
+          <option value="form_started">form_started</option>
+          <option value="validation_pass">validation_pass</option>
+          <option value="accepted">accepted</option>
+          <option value="contacted">contacted</option>
+          <option value="qualified">qualified</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+          <option value="initial_reject">initial_reject</option>
+          <option value="rejected">rejected</option>
+          <option value="returned">returned</option>
+          <option value="dispute_open">dispute_open</option>
+          <option value="final_closed">final_closed</option>
+        </select>
+      </label>
+    </div>
+    <label>Buyer status<input name="buyer_status" placeholder="buyer_qualified / billable / paid / scrubbed"></label>
+    <div class="split">
+      <label>Conversion action<input name="conversion_action_name" required placeholder="lead_qualified_b2b_us"></label>
+      <label>Action role
+        <select name="conversion_action_role">
+          <option value="secondary">secondary</option>
+          <option value="primary_candidate">primary_candidate</option>
+          <option value="primary">primary</option>
+          <option value="adjustment">adjustment</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Value mode
+        <select name="value_mode">
+          <option value="expected">expected</option>
+          <option value="zero">zero</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+          <option value="net">net</option>
+          <option value="adjustment">adjustment</option>
+          <option value="gross">gross</option>
+        </select>
+      </label>
+      <label>Payout amount<input type="number" step="0.0001" min="0" name="payout_amount" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved rate %<input type="number" step="0.01" min="0" max="100" name="approved_rate_percent" value="0"></label>
+      <label>Paid rate %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Return rate %<input type="number" step="0.01" min="0" max="100" name="return_rate_percent" value="0"></label>
+      <label>Variable cost / conv<input type="number" step="0.0001" min="0" name="variable_cost_per_conversion" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Weekly stage rows<input type="number" step="0.01" min="0" name="weekly_stage_count" value="0"></label>
+      <label>Weekly unique leads<input type="number" step="0.01" min="0" name="weekly_unique_leads" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Rejected rows<input type="number" step="0.01" min="0" name="rejected_count" value="0"></label>
+      <label>Returned rows<input type="number" step="0.01" min="0" name="returned_count" value="0"></label>
+    </div>
+    <label>Duplicate rows<input type="number" step="0.01" min="0" name="duplicate_count" value="0"></label>
+    <div class="split">
+      <label>Click ID match rate %<input type="number" step="0.01" min="0" max="100" name="click_id_match_rate_percent" value="0"></label>
+      <label>Import success rate %<input type="number" step="0.01" min="0" max="100" name="import_success_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Import error rate %<input type="number" step="0.01" min="0" max="100" name="import_error_rate_percent" value="0"></label>
+      <label>Average stage lag days<input type="number" step="0.01" min="0" name="average_stage_lag_days" value="0"></label>
+    </div>
+    <label>Return window days<input type="number" min="0" name="return_window_days" value="0"></label>
+    <div class="split">
+      <label>Transaction ID
+        <select name="transaction_id_status">
+          <option value="missing">missing</option>
+          <option value="unstable">unstable</option>
+          <option value="unique_per_stage">unique_per_stage</option>
+          <option value="idempotent">idempotent</option>
+        </select>
+      </label>
+      <label>Adjustment rule
+        <select name="adjustment_rule_status">
+          <option value="missing">missing</option>
+          <option value="manual_notes">manual_notes</option>
+          <option value="draft">draft</option>
+          <option value="ready">ready</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Import batch
+        <select name="import_batch_status">
+          <option value="draft">draft</option>
+          <option value="none">none</option>
+          <option value="manual_reviewed">manual_reviewed</option>
+          <option value="qa_ready">qa_ready</option>
+        </select>
+      </label>
+      <label>Diagnostics
+        <select name="diagnostics_status">
+          <option value="missing">missing</option>
+          <option value="errors_open">errors_open</option>
+          <option value="partial">partial</option>
+          <option value="reviewed">reviewed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Consent
+        <select name="consent_status">
+          <option value="missing">missing</option>
+          <option value="partial">partial</option>
+          <option value="reviewed">reviewed</option>
+          <option value="sensitive_reviewed">sensitive_reviewed</option>
+        </select>
+      </label>
+      <label>PII handling
+        <select name="pii_handling_status">
+          <option value="unknown">unknown</option>
+          <option value="raw_pii_in_url">raw_pii_in_url</option>
+          <option value="internal_only">internal_only</option>
+          <option value="hashed_minimized">hashed_minimized</option>
+          <option value="not_used">not_used</option>
+        </select>
+      </label>
+    </div>
+    <label>Stage mapping notes<textarea name="stage_mapping_notes" rows="3" placeholder="source stage -> standard stage 映射依据、版本和 buyer 字段合同"></textarea></label>
+    <label>Conversion action notes<textarea name="conversion_action_notes" rows="3" placeholder="对应 conversion action、primary/secondary 建议和命名"></textarea></label>
+    <label>Value mapping notes<textarea name="value_mapping_notes" rows="3" placeholder="expected / approved / paid / net value 公式和校准维度"></textarea></label>
+    <label>Transaction ID notes<textarea name="transaction_id_notes" rows="3" placeholder="lead_id:stage、row hash、idempotency 和重跑导入规则"></textarea></label>
+    <label>Import QA notes<textarea name="import_qa_notes" rows="3" placeholder="batch hash、row count、success/error、match rate、diagnostics"></textarea></label>
+    <label>Adjustment notes<textarea name="adjustment_notes" rows="3" placeholder="returned/rejected、retraction/restatement、negative adjustment 和证据"></textarea></label>
+    <label>Lag notes<textarea name="lag_notes" rows="3" placeholder="stage lag、return window、paid lag 和导入节奏"></textarea></label>
+    <label>Diagnostics notes<textarea name="diagnostics_notes" rows="3" placeholder="Google Ads diagnostics、错误行、修复结果和证据 URL"></textarea></label>
+    <label>Rollback plan<textarea name="rollback_plan" rows="3" placeholder="错误映射时停止导入、降级 secondary、修正 value 或 adjustment 的计划"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="stage_taxonomy_reviewed"> Stage taxonomy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="buyer_feedback_contract_reviewed"> Buyer feedback 合同已复核</label>
+      <label class="checkbox"><input type="checkbox" name="conversion_action_mapping_reviewed"> Conversion action 映射已复核</label>
+      <label class="checkbox"><input type="checkbox" name="primary_secondary_reviewed"> Primary / secondary 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="value_mode_reviewed"> Value mode 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="transaction_id_rule_ready"> Transaction ID 规则就绪</label>
+      <label class="checkbox"><input type="checkbox" name="rejected_returned_excluded"> Rejected / returned 已排除正向</label>
+      <label class="checkbox"><input type="checkbox" name="adjustment_policy_ready"> Adjustment policy 就绪</label>
+      <label class="checkbox"><input type="checkbox" name="import_batch_qa_ready"> Import batch QA 就绪</label>
+      <label class="checkbox"><input type="checkbox" name="diagnostics_reviewed"> Diagnostics 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="lag_profile_reviewed"> Lag profile 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="consent_policy_reviewed"> Consent / policy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录该 stage 是否可作为 secondary、primary candidate、offline import candidate 或 adjustment only。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Google Ads offline import、conversion adjustment、buyer feedback、CRM mapping、invoice 或 diagnostics URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>CRM Value Mapping 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ review.recommended_upload_policy }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            source={{ review.source_system }}
+            · buyer={{ review.buyer_name or "n/a" }}
+            · stage={{ review.source_stage }} -> {{ review.standard_stage }}
+            · buyer status={{ review.buyer_status or "n/a" }}
+          </small>
+          <small>
+            action={{ review.conversion_action_name }}
+            · role={{ review.conversion_action_role }}
+            · recommended={{ review.primary_recommendation }}
+            · value={{ review.value_mode }}
+            · expected value={{ "%.4f"|format(review.expected_value_float) }}
+          </small>
+          <small>
+            payout={{ "%.4f"|format(review.payout_amount_float) }}
+            · approved={{ "%.2f"|format(review.approved_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+            · return={{ "%.2f"|format(review.return_rate_percent) }}%
+            · variable cost={{ "%.4f"|format(review.variable_cost_per_conversion_float) }}
+          </small>
+          <small>
+            rows={{ "%.2f"|format(review.weekly_stage_count_float) }}
+            · unique={{ "%.2f"|format(review.weekly_unique_leads_float) }}
+            · rejected={{ "%.2f"|format(review.rejected_count) }}
+            · returned={{ "%.2f"|format(review.returned_count) }}
+            · duplicate={{ "%.2f"|format(review.duplicate_count) }}
+          </small>
+          <small>
+            match={{ "%.2f"|format(review.click_id_match_rate_percent) }}%
+            · import success={{ "%.2f"|format(review.import_success_rate_percent) }}%
+            · import error={{ "%.2f"|format(review.import_error_rate_percent) }}%
+            · lag={{ "%.2f"|format(review.average_stage_lag_days) }}d
+            · return window={{ review.return_window_days }}d
+          </small>
+          <small>
+            transaction={{ review.transaction_id_status }}
+            · adjustment={{ review.adjustment_rule_status }}
+            · batch={{ review.import_batch_status }}
+            · diagnostics={{ review.diagnostics_status }}
+            · consent={{ review.consent_status }}
+            · pii={{ review.pii_handling_status }}
+          </small>
+          {% if review.score_components %}
+            <small>
+              Components:
+              {% for key, value in review.score_components.items() %}
+                {{ key }}={{ value }}{% if not loop.last %} · {% endif %}
+              {% endfor %}
+            </small>
+          {% endif %}
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <ul class="compact">
+              {% for blocker in review.blockers[:8] %}<li>{{ blocker }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}
+            <p class="muted">{{ review.notes }}</p>
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('main.update_crm_value_mapping_status', review_id=review.id) }}">
+            <select name="status">
+              {% for value, label in status_options.items() %}
+                <option value="{{ value }}" {% if value == review.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button ghost" type="submit"><i data-lucide="check"></i>更新状态</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">暂无 CRM Value Mapping 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

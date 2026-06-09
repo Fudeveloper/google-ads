@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Scripts 同步{% endblock %}
+{% block heading %}Scripts 同步{% endblock %}
+{% block subheading %}把 Google Ads Scripts 报表、快照、Change history 和冲突转成可审计的数据门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增同步评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 Daily metrics LAST_7_DAYS snapshot"></label>
+    <div class="split">
+      <label>授权方式
+        <select name="auth_mode">
+          <option value="scripts_authorized">scripts_authorized</option>
+          <option value="manual_import">manual_import</option>
+          <option value="sheets_bridge">sheets_bridge</option>
+          <option value="url_fetch_internal">url_fetch_internal</option>
+        </select>
+      </label>
+      <label>同步类型
+        <select name="sync_type">
+          <option value="metrics_daily">metrics_daily</option>
+          <option value="search_terms">search_terms</option>
+          <option value="change_history">change_history</option>
+          <option value="object_snapshot">object_snapshot</option>
+          <option value="script_execution_log">script_execution_log</option>
+          <option value="write_preview">write_preview</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Script 名称<input name="script_name" placeholder="Daily Metrics Snapshot Preview"></label>
+      <label>Customer ID<input name="customer_id" placeholder="123-456-7890"></label>
+    </div>
+    <div class="split">
+      <label>Date range<input name="date_range" placeholder="TODAY / YESTERDAY / LAST_7_DAYS"></label>
+      <label>Report / query<input name="query_or_report" placeholder="campaign metrics daily GAQL"></label>
+    </div>
+    <div class="split">
+      <label>时区<input name="account_timezone" placeholder="America/New_York"></label>
+      <label>币种<input name="currency" placeholder="USD"></label>
+    </div>
+    <div class="split">
+      <label>Source snapshot hash<input name="source_snapshot_hash" placeholder="raw snapshot hash"></label>
+      <label>Payload / query hash<input name="payload_hash" placeholder="query or payload hash"></label>
+    </div>
+    <div class="split">
+      <label>Row count<input type="number" min="0" name="row_count" value="0"></label>
+      <label>Freshness 分钟<input type="number" min="0" name="freshness_minutes" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Errors<input type="number" min="0" name="error_count" value="0"></label>
+      <label>Warnings<input type="number" min="0" name="warning_count" value="0"></label>
+    </div>
+    <div class="split">
+      <label>数据状态
+        <select name="data_status">
+          <option value="provisional">provisional</option>
+          <option value="settling">settling</option>
+          <option value="mature">mature</option>
+          <option value="finalized">finalized</option>
+          <option value="disputed">disputed</option>
+        </select>
+      </label>
+      <label>收入状态
+        <select name="revenue_status">
+          <option value="estimated">estimated</option>
+          <option value="submitted">submitted</option>
+          <option value="approved">approved</option>
+          <option value="finalized">finalized</option>
+          <option value="paid">paid</option>
+          <option value="not_applicable">not_applicable</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>冲突状态
+        <select name="conflict_status">
+          <option value="clean">clean</option>
+          <option value="manual_review">manual_review</option>
+          <option value="stale_payload">stale_payload</option>
+          <option value="external_change">external_change</option>
+        </select>
+      </label>
+      <label>外部变更数<input type="number" min="0" name="external_change_count" value="0"></label>
+    </div>
+    <div class="split">
+      <label>重拉窗口天数<input type="number" min="0" name="rerun_window_days" value="0"></label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="change_history_checked"> 已检查 Change history</label>
+      <label class="checkbox"><input type="checkbox" name="preview_only" checked> Preview / read-only gated</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录同步窗口、脚本日志、冲突原因、重拉计划和人工导入结论。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Scripts log、report export、Change history、Sheets、Drive 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>同步评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge info">Score {{ review.score }}</span>
+            {{ review.risk_level }}
+            · {{ review.freshness_level }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            {{ review.auth_mode }} · {{ review.sync_type }}
+            · customer={{ review.customer_id or "n/a" }}
+            · range={{ review.date_range or "n/a" }}
+          </small>
+          <small>
+            rows={{ review.row_count }}
+            · errors={{ review.error_count }}
+            · warnings={{ review.warning_count }}
+            · freshness={{ review.freshness_minutes }}m
+            · rerun={{ review.rerun_window_days }}d
+          </small>
+          <small>
+            data={{ review.data_status }}
+            · revenue={{ review.revenue_status }}
+            · conflict={{ review.conflict_status }}
+            · external changes={{ review.external_change_count }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_scripts_sync_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 Scripts 同步评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

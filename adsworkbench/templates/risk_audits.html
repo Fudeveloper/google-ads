@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}风险审计{% endblock %}
+{% block heading %}风险审计{% endblock %}
+{% block subheading %}把高风险能力研究转成上线前审计记录和处理方案{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增审计记录</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>高风险能力
+      <select name="capability" required>
+        {% for value, label in capabilities %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="split">
+      <label>级别
+        <select name="severity">
+          <option>high</option>
+          <option>medium</option>
+          <option>info</option>
+        </select>
+      </label>
+      <label>状态
+        <select name="status">
+          <option>open</option>
+          <option>reviewed</option>
+          <option>mitigated</option>
+          <option>rejected</option>
+        </select>
+      </label>
+    </div>
+    <label>发现<textarea name="finding" rows="4" required placeholder="例如：该 Offer 的链接计划必须确认审核页和用户页一致。"></textarea></label>
+    <label>处理方案<textarea name="mitigation" rows="4" required placeholder="例如：仅允许同主题已审核 URL，变更需人工确认并写入日志。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个来源 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存审计</button>
+  </form>
+
+  <div class="panel">
+    <h2>审计记录</h2>
+    <div class="list">
+      {% for audit in audits %}
+        <div class="list-row">
+          <strong>{{ audit.capability }}</strong>
+          <span>
+            <span class="badge {{ audit.severity }}">{{ audit.severity }}</span>
+            {{ status_options.get(audit.status, audit.status) }}
+            {% if audit.offer %} · {{ audit.offer.name }}{% endif %}
+            {% if audit.campaign_draft %} · {{ audit.campaign_draft.name }}{% endif %}
+          </span>
+          <p>{{ audit.finding }}</p>
+          <small>{{ audit.mitigation }}</small>
+          {% if audit.source_urls %}
+            <small>Sources: {{ audit.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != audit.status %}
+                <form method="post" action="{{ url_for('main.update_risk_audit_status', audit_id=audit.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有风险审计记录。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

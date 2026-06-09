@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block subheading %}业务知识和实施说明{% endblock %}
+{% block content %}
+<section class="panel doc markdown-doc">
+  {{ content_html|safe }}
+</section>
+{% endblock %}

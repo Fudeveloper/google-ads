@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}命名维度{% endblock %}
+{% block heading %}命名维度{% endblock %}
+{% block subheading %}治理 Campaign 命名、Labels、UTM、ValueTrack、SubID、版本和报表 join key{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增维度评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search taxonomy export QA"></label>
+    <label>Campaign name<input name="campaign_name" required placeholder="gads-us-en-cloudbackup-ofr001-compare-search-mobile-202606-t001"></label>
+    <label>Ad group name<input name="ad_group_name" required placeholder="compare-cloudbackup-smallbiz-phrase-lpA-ang_compare_cost"></label>
+    <label>Labels<textarea name="labels_text" rows="3" placeholder="lifecycle:test,risk:claim_review,experiment:exp_202606_001,batch:batch_202606_editor_csv"></textarea></label>
+    <div class="split">
+      <label>utm_source<input name="utm_source" placeholder="gads"></label>
+      <label>utm_medium<input name="utm_medium" placeholder="cpc"></label>
+    </div>
+    <div class="split">
+      <label>utm_campaign<input name="utm_campaign" placeholder="{campaignid}"></label>
+      <label>utm_id<input name="utm_id" placeholder="ofr001-202606-t001"></label>
+    </div>
+    <div class="split">
+      <label>utm_content<input name="utm_content" placeholder="{adgroupid}"></label>
+      <label>utm_term<input name="utm_term" placeholder="{keyword}"></label>
+    </div>
+    <label>ValueTrack template<textarea name="valuetrack_template" rows="3" placeholder="cid={campaignid}&agid={adgroupid}&kw={keyword}&mt={matchtype}&dev={device}&net={network}&cr={creative}"></textarea></label>
+    <label>Custom parameter map<textarea name="custom_parameter_map" rows="3" placeholder="{_offer}=ofr001;{_lpv}=lpA;{_angle}=ang_compare_cost"></textarea></label>
+    <label>SubID map<textarea name="subid_map" rows="3" placeholder="subid1=channel;subid2=campaign;subid3=intent;subid4=keyword;subid5=angle_lpv"></textarea></label>
+    <div class="split">
+      <label>维度字典版本<input name="dimension_dictionary_version" placeholder="dim-2026-06"></label>
+      <label>参数映射版本<input name="parameter_map_version" placeholder="utm-subid-v1"></label>
+    </div>
+    <div class="split">
+      <label>Landing version<input name="landing_version" placeholder="lpA_compare_v3"></label>
+      <label>Link version<input name="link_version" placeholder="lnk_ofr001_cta_v4"></label>
+    </div>
+    <div class="split">
+      <label>Creative version<input name="creative_version" placeholder="ang_compare_cost_v2"></label>
+      <label>Payload hash<input name="payload_hash" placeholder="campaign payload hash"></label>
+    </div>
+    <div class="split">
+      <label>Report join gap<input type="number" min="0" name="report_join_gap_count" value="0"></label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="gclid_preserved"> gclid/auto-tagging 保留</label>
+      <label class="checkbox"><input type="checkbox" name="click_id_preserved"> click_id 保留</label>
+      <label class="checkbox"><input type="checkbox" name="lowercase_normalized"> 小写归一</label>
+      <label class="checkbox"><input type="checkbox" name="url_encoded"> URL 编码安全</label>
+      <label class="checkbox"><input type="checkbox" name="no_pii_in_url" checked> URL/SubID 无 PII</label>
+      <label class="checkbox"><input type="checkbox" name="no_sensitive_attributes" checked> 无敏感属性</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录命名模板、字典版本、参数映射、join gap、修复人和导出结论。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 ValueTrack、GA4 UTM、Labels、报表 join 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>维度评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge info">Score {{ review.score }}</span>
+            {{ review.risk_level }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>{{ review.campaign_name }}</small>
+          <small>{{ review.ad_group_name }}</small>
+          <small>
+            utm={{ review.utm_source or "n/a" }}/{{ review.utm_medium or "n/a" }}
+            · id={{ review.utm_id or "n/a" }}
+            · join gaps={{ review.report_join_gap_count }}
+          </small>
+          <small>
+            dict={{ review.dimension_dictionary_version or "n/a" }}
+            · map={{ review.parameter_map_version or "n/a" }}
+            · landing={{ review.landing_version or "n/a" }}
+            · link={{ review.link_version or "n/a" }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.missing_campaign_tokens %}
+            <small>Missing campaign tokens: {{ review.missing_campaign_tokens|join(", ") }}</small>
+          {% endif %}
+          {% if review.missing_utm_fields %}
+            <small>Missing UTM: {{ review.missing_utm_fields|join(", ") }}</small>
+          {% endif %}
+          {% if review.missing_label_groups %}
+            <small>Missing labels: {{ review.missing_label_groups|join(", ") }}</small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_taxonomy_governance_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有命名维度评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

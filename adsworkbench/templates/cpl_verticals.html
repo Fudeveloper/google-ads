@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}CPL 垂类{% endblock %}
+{% block heading %}CPL 垂类{% endblock %}
+{% block subheading %}把垂类经济、资格字段、Buyer Acceptance、回传延迟和政策边界转成放量前评审{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增垂类评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US insurance lead qualification gate"></label>
+    <div class="split">
+      <label>垂类
+        <select name="vertical">
+          <option value="insurance">insurance</option>
+          <option value="loan_debt">loan_debt</option>
+          <option value="legal">legal</option>
+          <option value="home_services">home_services</option>
+          <option value="education">education</option>
+          <option value="healthcare">healthcare</option>
+          <option value="b2b_saas">b2b_saas</option>
+          <option value="crypto_investment">crypto_investment</option>
+          <option value="employment">employment</option>
+          <option value="gambling">gambling</option>
+          <option value="addiction_treatment">addiction_treatment</option>
+          <option value="government_services">government_services</option>
+          <option value="other">other</option>
+        </select>
+      </label>
+      <label>子垂类<input name="subvertical" placeholder="Medicare / debt relief / PI / HVAC / demo request"></label>
+    </div>
+    <div class="split">
+      <label>国家/地区<input name="country" placeholder="US"></label>
+      <label>Buyer 类型<input name="buyer_type" placeholder="direct advertiser / network / call buyer"></label>
+    </div>
+    <div class="split">
+      <label>Payout model
+        <select name="payout_model">
+          <option value="CPL">CPL</option>
+          <option value="CPA">CPA</option>
+          <option value="pay_per_call">pay_per_call</option>
+          <option value="appointment">appointment</option>
+          <option value="revshare">revshare</option>
+        </select>
+      </label>
+      <label>Payout amount<input type="number" step="0.0001" min="0" name="payout_amount" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Estimated CPC<input type="number" step="0.0001" min="0" name="estimated_cpc" value="0"></label>
+      <label>Landing CVR %<input type="number" step="0.01" min="0" max="100" name="landing_cvr_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Accepted rate %<input type="number" step="0.01" min="0" max="100" name="accepted_rate_percent" value="0"></label>
+      <label>Qualified rate %<input type="number" step="0.01" min="0" max="100" name="qualified_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Paid rate %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+      <label>Deduction / scrub %<input type="number" step="0.01" min="0" max="100" name="deduction_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Chargeback / refund %<input type="number" step="0.01" min="0" max="100" name="chargeback_rate_percent" value="0"></label>
+      <label>Buyer feedback lag 天数<input type="number" min="0" name="feedback_lag_days" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Contact SLA 分钟<input type="number" min="0" name="contact_sla_minutes" value="0"></label>
+      <label>Buyer terms
+        <select name="buyer_terms_status">
+          <option value="missing">missing</option>
+          <option value="draft">draft</option>
+          <option value="received">received</option>
+          <option value="approved">approved</option>
+        </select>
+      </label>
+    </div>
+    <label>资格字段<textarea name="qualification_fields" rows="3" placeholder="state/zip, service need, timeline, eligibility, contact preference, consent scope"></textarea></label>
+    <label>敏感字段<textarea name="sensitive_fields" rows="3" placeholder="只记录必要字段和最小化处理，不保存不必要 PII/PHI/金融身份数据。"></textarea></label>
+    <label>Reject reason map<textarea name="reject_reason_map" rows="3" placeholder="bad geo, duplicate, invalid phone, no consent, low intent, not qualified"></textarea></label>
+    <label>Accepted definition<textarea name="accepted_definition" rows="3" placeholder="写清楚 buyer 接收 lead 的最小条件，不把 submit 直接当 accepted。"></textarea></label>
+    <label>Paid definition<textarea name="paid_definition" rows="3" placeholder="写清楚 qualified/billable/paid 事件和结算证据。"></textarea></label>
+    <label>Policy requirements<textarea name="policy_requirements" rows="3" placeholder="许可、认证、HEC、Personalized Ads、TCPA/DNC、隐私和披露要求。"></textarea></label>
+    <label>Forbidden claims<textarea name="forbidden_claims" rows="3" placeholder="例如 guaranteed approval、official government、lowest price、win your case。这里记录禁用话术，不表示要使用它们。"></textarea></label>
+    <div class="split">
+      <label>Consent disclosure
+        <select name="consent_disclosure_status">
+          <option value="missing">missing</option>
+          <option value="generic">generic</option>
+          <option value="buyer_named">buyer_named</option>
+          <option value="channel_specific">channel_specific</option>
+        </select>
+      </label>
+      <label>Source quality risk
+        <select name="source_quality">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Policy risk
+        <select name="policy_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+      <label>Data sensitivity
+        <select name="data_sensitivity">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="required_fields_mapped"> 字段已映射 reject reason</label>
+      <label class="checkbox"><input type="checkbox" name="reject_reason_map_ready"> Reject reason map 已确认</label>
+      <label class="checkbox"><input type="checkbox" name="accepted_definition_clear"> Accepted 口径清楚</label>
+      <label class="checkbox"><input type="checkbox" name="paid_definition_clear"> Paid 口径清楚</label>
+      <label class="checkbox"><input type="checkbox" name="pii_minimization"> PII 最小化已审核</label>
+      <label class="checkbox"><input type="checkbox" name="license_required"> 需要许可/认证</label>
+      <label class="checkbox"><input type="checkbox" name="license_evidence_present"> 许可/认证证据已保存</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录为什么可小测、需补 buyer terms、需政策复核、或不能放量。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 buyer terms、network docs、Google policy、FTC/TCPA/DNC、垂类许可或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>垂类评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            vertical={{ review.vertical }}
+            · sub={{ review.subvertical or "n/a" }}
+            · buyer={{ review.buyer_type or "n/a" }}
+            · country={{ review.country or "n/a" }}
+          </small>
+          <small>
+            payout={{ "%.4f"|format(review.payout_amount_float) }}
+            · effective={{ "%.4f"|format(review.effective_payout_float) }}
+            · ev/click={{ "%.4f"|format(review.expected_value_per_click_float) }}
+            · safe CPC={{ "%.4f"|format(review.safe_cpc_float) }}
+            · margin={{ "%.2f"|format(review.cpc_margin_percent) }}%
+          </small>
+          <small>
+            CVR={{ "%.2f"|format(review.landing_cvr_percent) }}%
+            · accepted={{ "%.2f"|format(review.accepted_rate_percent) }}%
+            · qualified={{ "%.2f"|format(review.qualified_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+            · deduction={{ "%.2f"|format(review.deduction_rate_percent) }}%
+          </small>
+          <small>
+            lag={{ review.feedback_lag_days }}d
+            · SLA={{ review.contact_sla_minutes }}m
+            · consent={{ review.consent_disclosure_status }}
+            · buyer terms={{ review.buyer_terms_status }}
+            · source={{ review.source_quality }}
+            · policy={{ review.policy_risk }}
+            · data={{ review.data_sensitivity }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.qualification_fields %}<small>Fields: {{ review.qualification_fields }}</small>{% endif %}
+          {% if review.reject_reason_map %}<small>Reject map: {{ review.reject_reason_map }}</small>{% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_cpl_vertical_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 CPL 垂类评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

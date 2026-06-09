@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}来源库{% endblock %}
+{% block heading %}来源库{% endblock %}
+{% block subheading %}记录 Ads 套利、高风险能力和 ADXKit 拆解的信息来源 URL、证据用途和可信级别{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增来源</h2>
+    <label>主题<input name="topic" required placeholder="例如：补点击、刷展示、模拟自然流量"></label>
+    <label>高风险能力
+      <select name="capability">
+        <option value="">不绑定</option>
+        {% for value, label in capabilities %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>标题<input name="title" required placeholder="官方文档或资料标题"></label>
+    <label>URL<input name="url" required placeholder="https://..."></label>
+    <div class="split">
+      <label>发布方<input name="publisher" placeholder="Google Ads Policy"></label>
+      <label>来源类型<input name="source_type" value="policy"></label>
+    </div>
+    <div class="split">
+      <label>可信级别
+        <select name="reliability">
+          <option>primary</option>
+          <option>public_claim</option>
+          <option>industry_reference</option>
+          <option>secondary</option>
+        </select>
+      </label>
+      <label>复核状态
+        <select name="review_status">
+          {% for value, label in source_statuses.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>检索日期<input value="{{ sources[0].retrieved_on if sources else '' }}" disabled></label>
+    <label>证据摘要<textarea name="claim_summary" rows="4" required placeholder="这条来源支持了哪个判断、定义或系统边界"></textarea></label>
+    <label>备注<textarea name="notes" rows="3" placeholder="适用范围、局限、是否需要后续复核"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存来源</button>
+  </form>
+
+  <div class="panel">
+    <h2>来源记录</h2>
+    <div class="list">
+      {% for source in sources %}
+        <div class="list-row">
+          <strong>{{ source.title }}</strong>
+          <span>
+            {{ source.topic }} · {{ source.publisher }} · {{ source.reliability }}
+            · {{ source_statuses.get(source.review_status, source.review_status) }}
+            {% if source.capability %} · {{ source.capability }}{% endif %}
+          </span>
+          <p>{{ source.claim_summary }}</p>
+          {% if source.notes %}<small>{{ source.notes }}</small>{% endif %}
+          <a href="{{ source.url }}" target="_blank" rel="noopener">{{ source.url }}</a>
+          <div class="inline-actions">
+            {% for value, label in source_statuses.items() %}
+              {% if value != source.review_status %}
+                <form method="post" action="{{ url_for('main.update_source_status', source_id=source.id) }}">
+                  <input type="hidden" name="review_status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有来源记录。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

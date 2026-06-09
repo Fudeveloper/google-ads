@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}来源质量{% endblock %}
+{% block heading %}来源质量{% endblock %}
+{% block subheading %}把 source、publisher、placement、subid、buyer feedback 和收入质量转成名单治理门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增来源质量评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }} · {{ offer.status }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search placement quality check"></label>
+    <div class="split">
+      <label>评审对象
+        <select name="entity_type">
+          <option value="source">source</option>
+          <option value="publisher">publisher</option>
+          <option value="placement">placement</option>
+          <option value="subid">subid</option>
+          <option value="campaign">campaign</option>
+          <option value="vendor">vendor</option>
+        </select>
+      </label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>Source 名称<input name="source_name" required placeholder="例如 Google Search / approved native partner"></label>
+    <div class="split">
+      <label>Publisher<input name="publisher_name" placeholder="可选"></label>
+      <label>Placement / Query group<input name="placement_ref" placeholder="版位、query group 或 inventory ref"></label>
+    </div>
+    <div class="split">
+      <label>SubID<input name="subid" placeholder="subid / utm_content / placement id"></label>
+      <label>Network<input name="network" placeholder="Google Ads Search / Demand Gen / Native partner"></label>
+    </div>
+    <div class="split">
+      <label>国家<input name="country" value="US"></label>
+      <label>设备<input name="device" value="desktop"></label>
+    </div>
+    <label>样本 URL<input name="sample_url" placeholder="真实落地页、报表或审核样本 URL"></label>
+    <div class="split">
+      <label>透明度
+        <select name="transparency_level">
+          <option value="full">full</option>
+          <option value="partial">partial</option>
+          <option value="opaque">opaque</option>
+        </select>
+      </label>
+      <label>Tracking 完整度 %<input type="number" step="0.01" min="0" max="100" name="tracking_completeness_percent" value="90"></label>
+    </div>
+    <div class="split">
+      <label>Intent fit score<input type="number" min="0" max="100" name="intent_fit_score" value="75"></label>
+      <label>稳定样本天数<input type="number" min="0" name="consistency_days" value="7"></label>
+    </div>
+    <div class="split">
+      <label>Clicks<input type="number" min="0" name="clicks" value="0"></label>
+      <label>Sessions<input type="number" min="0" name="sessions" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Cost<input type="number" step="0.01" min="0" name="cost" value="0"></label>
+      <label>Reported revenue<input type="number" step="0.01" min="0" name="reported_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved revenue<input type="number" step="0.01" min="0" name="approved_revenue" value="0"></label>
+      <label>Paid revenue<input type="number" step="0.01" min="0" name="paid_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Deducted revenue<input type="number" step="0.01" min="0" name="deducted_revenue" value="0"></label>
+      <label>Invalid click rate %<input type="number" step="0.01" min="0" max="100" name="invalid_click_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Complaints<input type="number" min="0" name="complaint_count" value="0"></label>
+      <label>Buyer reject rate %<input type="number" step="0.01" min="0" max="100" name="buyer_reject_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Policy issue
+        <select name="policy_issue_state">
+          <option value="clean">clean</option>
+          <option value="warning">warning</option>
+          <option value="active">active</option>
+        </select>
+      </label>
+      <label>停源控制
+        <select name="stop_control">
+          <option value="precise">precise</option>
+          <option value="partial">partial</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录来源透明度、样本口径、buyer feedback、停源/恢复原因和名单建议。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Google Ads 报表、AdSense/联盟后台快照、buyer feedback、邮件或政策 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>来源质量评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.quality_level }}">{{ review.quality_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            {{ review.entity_type }}={{ review.source_name }}
+            {% if review.publisher_name %} · publisher={{ review.publisher_name }}{% endif %}
+            {% if review.placement_ref %} · placement={{ review.placement_ref }}{% endif %}
+            {% if review.subid %} · subid={{ review.subid }}{% endif %}
+          </small>
+          <small>
+            network={{ review.network or "-" }}
+            · geo={{ review.country or "-" }}
+            · device={{ review.device or "-" }}
+            · transparency={{ review.transparency_level }}
+            · stop={{ review.stop_control }}
+          </small>
+          <small>
+            clicks={{ review.clicks }}
+            · sessions={{ review.sessions }}
+            · click/session {{ "%.2f"|format(review.click_session_rate) }}%
+            · tracking {{ "%.2f"|format(review.tracking_completeness_percent) }}%
+            · intent {{ review.intent_fit_score }}
+          </small>
+          <small>
+            cost ${{ "%.2f"|format(review.cost_float) }}
+            · reported ${{ "%.2f"|format(review.reported_revenue_float) }}
+            · approved ${{ "%.2f"|format(review.approved_revenue_float) }}
+            · paid ${{ "%.2f"|format(review.paid_revenue_float) }}
+            · deducted ${{ "%.2f"|format(review.deducted_revenue_float) }}
+          </small>
+          <small>
+            approved rate {{ "%.2f"|format(review.approved_rate) }}%
+            · paid rate {{ "%.2f"|format(review.paid_rate) }}%
+            · deduction {{ "%.2f"|format(review.deduction_rate) }}%
+            · paid ROI {{ "%.2f"|format(review.paid_roi) }}%
+            · approved ROI {{ "%.2f"|format(review.approved_roi) }}%
+          </small>
+          <small>
+            invalid clicks {{ "%.2f"|format(review.invalid_click_rate_percent) }}%
+            · complaints {{ review.complaint_count }}
+            · buyer reject {{ "%.2f"|format(review.buyer_reject_rate_percent) }}%
+            · policy={{ review.policy_issue_state }}
+            · sample={{ review.consistency_days }}d
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.sample_url %}<small>Sample: {{ review.sample_url }}</small>{% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_source_quality_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有来源质量评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

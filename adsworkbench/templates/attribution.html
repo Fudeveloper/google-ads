@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}归因增量{% endblock %}
+{% block heading %}归因增量{% endblock %}
+{% block subheading %}区分 attribution credit、incremental lift、iROAS、增量利润和流量蚕食风险{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增归因评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search geo holdout incrementality review"></label>
+    <div class="split">
+      <label>测试类型
+        <select name="test_type">
+          <option value="geo_holdout">geo_holdout</option>
+          <option value="campaign_experiment">campaign_experiment</option>
+          <option value="audience_holdout">audience_holdout</option>
+          <option value="lift_study">lift_study</option>
+          <option value="model_comparison">model_comparison</option>
+          <option value="pre_post">pre_post</option>
+        </select>
+      </label>
+      <label>Attribution model
+        <select name="attribution_model">
+          <option value="data_driven">data_driven</option>
+          <option value="last_click">last_click</option>
+          <option value="linear">linear</option>
+          <option value="position_based">position_based</option>
+          <option value="time_decay">time_decay</option>
+          <option value="ga4_cross_channel">ga4_cross_channel</option>
+        </select>
+      </label>
+    </div>
+    <label>实验假设<textarea name="hypothesis" rows="3" placeholder="写清楚广告花费预期创造的新增收入，而不是只抢 attribution credit。"></textarea></label>
+    <label>Treatment scope<textarea name="treatment_scope" rows="3" placeholder="投放区域、人群、query、预算、页面或 campaign 范围。"></textarea></label>
+    <label>Control / holdout scope<textarea name="control_scope" rows="3" placeholder="对照区域、人群、baseline 或 holdout 设计。"></textarea></label>
+    <div class="split">
+      <label>Split method<input name="split_method" placeholder="geo matched holdout / experiment split / audience holdout"></label>
+      <label>Date window<input name="date_window" placeholder="2026-06-01..2026-06-14"></label>
+    </div>
+    <div class="split">
+      <label>Primary metric<input name="primary_metric" placeholder="incremental approved revenue"></label>
+      <label>Guardrail metrics<input name="guardrail_metrics" placeholder="organic/direct sessions, brand query, reject rate"></label>
+    </div>
+    <div class="split">
+      <label>Attributed revenue<input type="number" step="0.01" min="0" name="attributed_revenue" value="0"></label>
+      <label>Treatment revenue<input type="number" step="0.01" min="0" name="treatment_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Control revenue<input type="number" step="0.01" min="0" name="control_revenue" value="0"></label>
+      <label>Ad cost<input type="number" step="0.01" min="0" name="ad_cost" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Variable cost<input type="number" step="0.01" min="0" name="variable_cost" value="0"></label>
+      <label>Attributed conversions<input type="number" min="0" name="attributed_conversions" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Incremental conversions<input type="number" min="0" name="incremental_conversions" value="0"></label>
+      <label>Sample size<input type="number" min="0" name="sample_size" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Confidence level %<input type="number" step="0.01" min="0" max="100" name="confidence_level" value="0"></label>
+      <label>Holdout quality
+        <select name="holdout_quality">
+          <option value="none">none</option>
+          <option value="weak">weak</option>
+          <option value="partial">partial</option>
+          <option value="clean">clean</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>收入状态
+        <select name="revenue_status">
+          <option value="submitted">submitted</option>
+          <option value="accepted">accepted</option>
+          <option value="approved">approved</option>
+          <option value="finalized">finalized</option>
+          <option value="paid">paid</option>
+        </select>
+      </label>
+      <label>数据状态
+        <select name="data_status">
+          <option value="fresh">fresh</option>
+          <option value="partial">partial</option>
+          <option value="mature">mature</option>
+          <option value="settled">settled</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Brand 蚕食风险
+        <select name="brand_cannibalization_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+      <label>Organic/direct 蚕食风险
+        <select name="organic_cannibalization_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Remarketing 蚕食风险
+        <select name="remarketing_cannibalization_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+      <label>PMax / broad overlap
+        <select name="pmax_broad_overlap_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="change_history_clean"> Change history 干净</label>
+      <label class="checkbox"><input type="checkbox" name="single_variable_test"> 单变量测试</label>
+      <label class="checkbox"><input type="checkbox" name="approved_paid_evidence"> 有 approved/paid 证据</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 holdout 设计、对照口径、归因窗口、收入成熟度、蚕食判断和人工结论。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Google Ads experiment、lift、GA4 attribution、Change history 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>归因评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge info">Score {{ review.score }}</span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            test={{ review.test_type }}
+            · model={{ review.attribution_model }}
+            · holdout={{ review.holdout_quality }}
+            · revenue={{ review.revenue_status }}
+            · data={{ review.data_status }}
+          </small>
+          <small>
+            attributed={{ "%.2f"|format(review.attributed_revenue_float) }}
+            · incremental={{ "%.2f"|format(review.incremental_revenue_float) }}
+            · profit={{ "%.2f"|format(review.incremental_profit_float) }}
+            · iROAS={{ "%.2f"|format(review.i_roas_float) }}
+          </small>
+          <small>
+            conversions={{ review.incremental_conversions }}/{{ review.attributed_conversions }}
+            · sample={{ review.sample_size }}
+            · confidence={{ "%.2f"|format(review.confidence_level) }}%
+          </small>
+          <small>
+            cannibalization brand={{ review.brand_cannibalization_risk }}
+            · organic={{ review.organic_cannibalization_risk }}
+            · remarketing={{ review.remarketing_cannibalization_risk }}
+            · pmax/broad={{ review.pmax_broad_overlap_risk }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.hypothesis %}<p>{{ review.hypothesis }}</p>{% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_attribution_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有归因增量评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

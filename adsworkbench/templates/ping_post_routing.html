@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}Ping/Post{% endblock %}
+{% block heading %}Ping/Post{% endblock %}
+{% block subheading %}把 lead marketplace、buyer routing、consent、PII 最小化、cap、reject 和 paid feedback 转成路由门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Ping/Post Routing 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US insurance exclusive ping-post gate"></label>
+    <div class="split">
+      <label>垂类<input name="vertical" value="insurance"></label>
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+    </div>
+    <div class="split">
+      <label>Buyer group<input name="buyer_group_name" placeholder="direct buyers / ping tree / network"></label>
+      <label>Source type<input name="source_type" value="google_search"></label>
+    </div>
+    <label>Form version<input name="form_version" placeholder="form_v2026_06_consent_a"></label>
+    <div class="split">
+      <label>Routing mode
+        <select name="routing_mode">
+          <option value="ping_post">ping_post</option>
+          <option value="direct_post">direct_post</option>
+          <option value="waterfall">waterfall</option>
+          <option value="auction">auction</option>
+          <option value="priority">priority</option>
+          <option value="weighted_split">weighted_split</option>
+          <option value="exclusive_first_shared_fallback">exclusive_first_shared_fallback</option>
+        </select>
+      </label>
+      <label>Lead type
+        <select name="lead_type">
+          <option value="exclusive">exclusive</option>
+          <option value="shared">shared</option>
+          <option value="aged">aged</option>
+          <option value="transfer">transfer</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Consent scope
+        <select name="consent_scope">
+          <option value="missing">missing</option>
+          <option value="single_buyer">single_buyer</option>
+          <option value="named_buyer">named_buyer</option>
+          <option value="named_buyer_group">named_buyer_group</option>
+          <option value="shared_group">shared_group</option>
+          <option value="aged_refresh_reviewed">aged_refresh_reviewed</option>
+          <option value="tcp_sms_reviewed">tcp_sms_reviewed</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+      <label>Buyer disclosure
+        <select name="buyer_disclosure_status">
+          <option value="missing">missing</option>
+          <option value="generic">generic</option>
+          <option value="buyer_group">buyer_group</option>
+          <option value="named_buyers">named_buyers</option>
+          <option value="contract_reviewed">contract_reviewed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Ping field scope
+        <select name="ping_field_scope">
+          <option value="unknown">unknown</option>
+          <option value="minimal_non_pii">minimal_non_pii</option>
+          <option value="hashed_dedupe">hashed_dedupe</option>
+          <option value="rule_reviewed">rule_reviewed</option>
+          <option value="full_pii">full_pii</option>
+        </select>
+      </label>
+      <label>PII level
+        <select name="pii_level">
+          <option value="unknown">unknown</option>
+          <option value="hashed_minimized">hashed_minimized</option>
+          <option value="post_only_to_selected_buyer">post_only_to_selected_buyer</option>
+          <option value="internal_only">internal_only</option>
+          <option value="not_used">not_used</option>
+          <option value="full_pii_ping">full_pii_ping</option>
+          <option value="raw_pii_in_url">raw_pii_in_url</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Suppression
+        <select name="suppression_status">
+          <option value="missing">missing</option>
+          <option value="partial">partial</option>
+          <option value="checked">checked</option>
+          <option value="ready">ready</option>
+          <option value="stale">stale</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+      <label>DNC
+        <select name="dnc_status">
+          <option value="missing">missing</option>
+          <option value="partial">partial</option>
+          <option value="checked">checked</option>
+          <option value="ready">ready</option>
+          <option value="stale">stale</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Cap snapshot
+        <select name="cap_snapshot_status">
+          <option value="missing">missing</option>
+          <option value="stale">stale</option>
+          <option value="same_day">same_day</option>
+          <option value="realtime">realtime</option>
+        </select>
+      </label>
+      <label>Fallback
+        <select name="fallback_status">
+          <option value="missing">missing</option>
+          <option value="draft">draft</option>
+          <option value="disabled">disabled</option>
+          <option value="reviewed_same_intent">reviewed_same_intent</option>
+          <option value="approved">approved</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Buyer feedback
+        <select name="buyer_feedback_status">
+          <option value="missing">missing</option>
+          <option value="delayed">delayed</option>
+          <option value="accepted_only">accepted_only</option>
+          <option value="mapped">mapped</option>
+          <option value="paid_feedback_ready">paid_feedback_ready</option>
+        </select>
+      </label>
+      <label>Source policy
+        <select name="source_policy_status">
+          <option value="unknown">unknown</option>
+          <option value="under_review">under_review</option>
+          <option value="approved">approved</option>
+          <option value="buyer_approved">buyer_approved</option>
+          <option value="disallowed">disallowed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Buyer count<input type="number" min="0" name="buyer_count" value="0"></label>
+      <label>Max post buyers<input type="number" min="1" name="max_post_buyers" value="1"></label>
+    </div>
+    <div class="split">
+      <label>Pinged buyers<input type="number" min="0" name="pinged_buyers" value="0"></label>
+      <label>Accepted buyers<input type="number" min="0" name="accepted_buyers" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Posted buyers<input type="number" min="0" name="posted_buyers" value="0"></label>
+      <label>Primary cap remaining<input type="number" step="0.01" min="0" name="primary_buyer_cap_remaining" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Cap checked 分钟前<input type="number" min="0" name="cap_last_checked_minutes" value="0"></label>
+      <label>Lead age 分钟<input type="number" min="0" name="lead_age_minutes" value="0"></label>
+    </div>
+    <label>Avg ping latency ms<input type="number" min="0" name="avg_ping_latency_ms" value="0"></label>
+    <div class="split">
+      <label>Expected bid / payout<input type="number" step="0.0001" min="0" name="expected_bid_amount" value="0"></label>
+      <label>Fallback payout<input type="number" step="0.0001" min="0" name="fallback_payout_amount" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Buyer accept %<input type="number" step="0.01" min="0" max="100" name="buyer_accept_rate_percent" value="0"></label>
+      <label>Qualification %<input type="number" step="0.01" min="0" max="100" name="qualification_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Paid %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+      <label>No buyer %<input type="number" step="0.01" min="0" max="100" name="no_buyer_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Reject %<input type="number" step="0.01" min="0" max="100" name="reject_rate_percent" value="0"></label>
+      <label>Duplicate %<input type="number" step="0.01" min="0" max="100" name="duplicate_rate_percent" value="0"></label>
+    </div>
+    <label>Complaint %<input type="number" step="0.01" min="0" max="100" name="complaint_rate_percent" value="0"></label>
+    <label>Fields sent schema<textarea name="fields_sent_schema" rows="3" placeholder="ping: vertical, zip3, source_type, consent_version, phone_hash; post: selected buyer only"></textarea></label>
+    <label>Routing rule summary<textarea name="routing_rule_summary" rows="3" placeholder="consent -> suppression/DNC -> cap -> buyer match -> effective value -> post selected buyer"></textarea></label>
+    <label>Buyer disclosure notes<textarea name="buyer_disclosure_notes" rows="3" placeholder="用户看到的 buyer / buyer group / privacy / contact channel 文案版本"></textarea></label>
+    <label>Cap snapshot notes<textarea name="cap_snapshot_notes" rows="3" placeholder="buyer cap source, checked_at, remaining, reset timezone"></textarea></label>
+    <label>Reject reason map<textarea name="reject_reason_map" rows="3" placeholder="duplicate, bad_geo, no_consent, cap_reached, low_intent, invalid_contact"></textarea></label>
+    <label>Fallback policy<textarea name="fallback_policy" rows="3" placeholder="same intent, same disclosure, approved buyer, lower payout threshold"></textarea></label>
+    <label>Buyer feedback plan<textarea name="buyer_feedback_plan" rows="3" placeholder="accepted -> contacted -> qualified -> approved -> paid -> returned/complaint"></textarea></label>
+    <label>Suppression notes<textarea name="suppression_notes" rows="3" placeholder="opt-out, DNC, duplicate, buyer suppression sync and evidence"></textarea></label>
+    <label>Consent evidence notes<textarea name="consent_evidence_notes" rows="3" placeholder="disclosure text hash, consent time, consent URL, buyer list URL, privacy policy"></textarea></label>
+    <label>Incident notes<textarea name="incident_notes" rows="3" placeholder="complaint spike, no-buyer spike, cap outage, reject spike and pause decision"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="consent_version_evidence"> Consent version 证据</label>
+      <label class="checkbox"><input type="checkbox" name="buyer_disclosure_reviewed"> Buyer disclosure 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="field_minimization_reviewed"> 字段最小化已复核</label>
+      <label class="checkbox"><input type="checkbox" name="suppression_dnc_checked"> Suppression / DNC 已检查</label>
+      <label class="checkbox"><input type="checkbox" name="cap_snapshot_evidence"> Cap snapshot 证据</label>
+      <label class="checkbox"><input type="checkbox" name="routing_rule_reviewed"> Routing rule 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="exclusive_shared_terms_reviewed"> Exclusive / shared / aged 条款已复核</label>
+      <label class="checkbox"><input type="checkbox" name="fallback_buyer_reviewed"> Fallback buyer 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="buyer_feedback_ready"> Buyer feedback 就绪</label>
+      <label class="checkbox"><input type="checkbox" name="source_policy_reviewed"> Source policy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录是否可人工小测、为何阻止、需要修 consent/cap/feedback/source 哪一块。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Ping/Post、FTC/FCC、Google Ads、buyer contract、cap snapshot 或 policy URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Ping/Post Routing 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            mode={{ review.routing_mode }}
+            · type={{ review.lead_type }}
+            · consent={{ review.consent_scope }}
+            · disclosure={{ review.buyer_disclosure_status }}
+            · pii={{ review.pii_level }}
+          </small>
+          <small>
+            buyer group={{ review.buyer_group_name or "n/a" }}
+            · vertical={{ review.vertical }}
+            · geo={{ review.geo or "n/a" }}
+            · source={{ review.source_type }}
+            · form={{ review.form_version or "n/a" }}
+          </small>
+          <small>
+            buyers={{ review.buyer_count }}
+            · pinged={{ review.pinged_buyers }}
+            · accepted={{ review.accepted_buyers }}
+            · posted={{ review.posted_buyers }}/{{ review.max_post_buyers }}
+            · latency={{ review.avg_ping_latency_ms }}ms
+          </small>
+          <small>
+            cap={{ review.cap_snapshot_status }}
+            · remaining={{ "%.2f"|format(review.primary_buyer_cap_remaining_float) }}
+            · checked={{ review.cap_last_checked_minutes }}m
+            · fallback={{ review.fallback_status }}
+          </small>
+          <small>
+            expected payable value={{ "%.4f"|format(review.expected_payable_value_per_lead_float) }}
+            · safe CPL={{ "%.4f"|format(review.safe_cpl_float) }}
+            · bid={{ "%.4f"|format(review.expected_bid_amount_float) }}
+            · fallback payout={{ "%.4f"|format(review.fallback_payout_amount_float) }}
+          </small>
+          <small>
+            accept={{ "%.2f"|format(review.buyer_accept_rate_percent) }}%
+            · qualified={{ "%.2f"|format(review.qualification_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+            · no buyer={{ "%.2f"|format(review.no_buyer_rate_percent) }}%
+          </small>
+          <small>
+            reject={{ "%.2f"|format(review.reject_rate_percent) }}%
+            · duplicate={{ "%.2f"|format(review.duplicate_rate_percent) }}%
+            · complaint={{ "%.2f"|format(review.complaint_rate_percent) }}%
+            · feedback={{ review.buyer_feedback_status }}
+          </small>
+          {% if review.score_components %}
+            <small>
+              Components:
+              {% for key, value in review.score_components.items() %}
+                {{ key }}={{ value }}{% if not loop.last %} · {% endif %}
+              {% endfor %}
+            </small>
+          {% endif %}
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <ul class="compact">
+              {% for blocker in review.blockers[:8] %}<li>{{ blocker }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}
+            <p class="muted">{{ review.notes }}</p>
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('main.update_ping_post_routing_status', review_id=review.id) }}">
+            <select name="status">
+              {% for value, label in status_options.items() %}
+                <option value="{{ value }}" {% if value == review.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button ghost" type="submit"><i data-lucide="check"></i>更新状态</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">暂无 Ping/Post Routing 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

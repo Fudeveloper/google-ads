@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}接量节奏{% endblock %}
+{% block heading %}接量节奏{% endblock %}
+{% block subheading %}把 buyer cap、operating hours、ad schedule、no buyer、missed contact 和 timezone 转成接量门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Buyer Capacity 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US dental buyer cap pacing gate"></label>
+    <div class="split">
+      <label>Buyer<input name="buyer_name" placeholder="direct advertiser / call buyer / clinic / contractor"></label>
+      <label>垂类<input name="vertical" value="b2b_saas"></label>
+    </div>
+    <div class="split">
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+      <label>Cap type
+        <select name="cap_type">
+          <option value="daily_buyer_cap">daily_buyer_cap</option>
+          <option value="monthly_cap">monthly_cap</option>
+          <option value="source_cap">source_cap</option>
+          <option value="geo_cap">geo_cap</option>
+          <option value="hour_cap">hour_cap</option>
+          <option value="call_capacity">call_capacity</option>
+          <option value="appointment_capacity">appointment_capacity</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Buyer timezone<input name="buyer_timezone" value="America/New_York"></label>
+      <label>Ads account timezone<input name="account_timezone" value="UTC"></label>
+    </div>
+    <div class="split">
+      <label>User timezone scope<input name="user_timezone_scope" placeholder="US Eastern / service area / mixed"></label>
+      <label>Call center timezone<input name="call_center_timezone" placeholder="America/New_York"></label>
+    </div>
+    <div class="split">
+      <label>Cap period
+        <select name="cap_period">
+          <option value="daily">daily</option>
+          <option value="weekly">weekly</option>
+          <option value="monthly">monthly</option>
+          <option value="source_daily">source_daily</option>
+          <option value="geo_daily">geo_daily</option>
+          <option value="hourly">hourly</option>
+        </select>
+      </label>
+      <label>Cap confidence
+        <select name="cap_confidence_status">
+          <option value="unknown">unknown</option>
+          <option value="stale">stale</option>
+          <option value="same_day">same_day</option>
+          <option value="realtime">realtime</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Cap limit<input type="number" step="0.01" min="0" name="cap_limit" value="0"></label>
+      <label>Cap used<input type="number" step="0.01" min="0" name="cap_used" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Elapsed operating day %<input type="number" step="0.01" min="0" max="100" name="elapsed_operating_day_percent" value="0"></label>
+      <label>Expected next hour leads<input type="number" step="0.01" min="0" name="expected_next_hour_leads" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Expected daily leads<input type="number" step="0.01" min="0" name="expected_daily_leads" value="0"></label>
+      <label>Hourly contact capacity<input type="number" step="0.01" min="0" name="hourly_contact_capacity" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Current hour used<input type="number" step="0.01" min="0" name="current_hour_capacity_used" value="0"></label>
+      <label>Expected paid value / lead<input type="number" step="0.0001" min="0" name="expected_paid_value_per_lead" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Accepted %<input type="number" step="0.01" min="0" max="100" name="accepted_rate_percent" value="0"></label>
+      <label>Qualified %<input type="number" step="0.01" min="0" max="100" name="qualified_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Paid %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+      <label>No buyer %<input type="number" step="0.01" min="0" max="100" name="no_buyer_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Missed contact %<input type="number" step="0.01" min="0" max="100" name="missed_contact_rate_percent" value="0"></label>
+      <label>After-hours lead %<input type="number" step="0.01" min="0" max="100" name="after_hours_lead_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Cap last confirmed 小时<input type="number" min="0" name="cap_last_confirmed_hours" value="0"></label>
+      <label>Feedback SLA 小时<input type="number" min="0" name="feedback_sla_hours" value="24"></label>
+    </div>
+    <label>First attempt SLA 分钟<input type="number" min="0" name="first_attempt_sla_minutes" value="5"></label>
+    <div class="split">
+      <label>Buyer hours
+        <select name="hours_alignment_status">
+          <option value="missing">missing</option>
+          <option value="mismatch">mismatch</option>
+          <option value="partial">partial</option>
+          <option value="aligned">aligned</option>
+        </select>
+      </label>
+      <label>Ad schedule
+        <select name="ad_schedule_alignment_status">
+          <option value="missing">missing</option>
+          <option value="mismatch">mismatch</option>
+          <option value="partial">partial</option>
+          <option value="aligned">aligned</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Timezone
+        <select name="timezone_alignment_status">
+          <option value="missing">missing</option>
+          <option value="mismatch">mismatch</option>
+          <option value="partial">partial</option>
+          <option value="aligned">aligned</option>
+        </select>
+      </label>
+      <label>Holiday calendar
+        <select name="holiday_readiness_status">
+          <option value="unknown">unknown</option>
+          <option value="missing">missing</option>
+          <option value="stale">stale</option>
+          <option value="ready">ready</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Fallback buyer
+        <select name="fallback_status">
+          <option value="missing">missing</option>
+          <option value="disabled">disabled</option>
+          <option value="draft">draft</option>
+          <option value="reviewed_same_intent">reviewed_same_intent</option>
+          <option value="approved">approved</option>
+        </select>
+      </label>
+      <label>Source quality
+        <select name="source_quality_status">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+          <option value="buyer_approved">buyer_approved</option>
+        </select>
+      </label>
+    </div>
+    <label>Overdelivery guardrail
+      <select name="overdelivery_guardrail_status">
+        <option value="missing">missing</option>
+        <option value="manual">manual</option>
+        <option value="defined">defined</option>
+        <option value="tested">tested</option>
+      </select>
+    </label>
+    <label>Operating hours<textarea name="operating_hours" rows="3" placeholder="buyer/call center hours, lunch/shift gap, emergency availability"></textarea></label>
+    <label>Cap reset rule<textarea name="cap_reset_rule" rows="3" placeholder="reset timezone, reset hour, returned lead release rule, update frequency"></textarea></label>
+    <label>Holiday calendar<textarea name="holiday_calendar" rows="3" placeholder="holiday closures, shortened hours, checked date"></textarea></label>
+    <label>Ad schedule summary<textarea name="ad_schedule_summary" rows="3" placeholder="campaign/call asset schedule and timezone basis"></textarea></label>
+    <label>No buyer reason map<textarea name="no_buyer_reason_map" rows="3" placeholder="cap reached, buyer closed, source not approved, quality hold, API failure"></textarea></label>
+    <label>Routing fallback policy<textarea name="routing_fallback_policy" rows="3" placeholder="same intent, same disclosure, approved buyer, no hidden destination"></textarea></label>
+    <label>Dayparting basis<textarea name="dayparting_basis" rows="3" placeholder="mature accepted/qualified/paid cohort by lead created time"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="cap_snapshot_evidence"> Cap snapshot 证据</label>
+      <label class="checkbox"><input type="checkbox" name="buyer_hours_evidence"> Buyer hours 证据</label>
+      <label class="checkbox"><input type="checkbox" name="ad_schedule_evidence"> Ad schedule 证据</label>
+      <label class="checkbox"><input type="checkbox" name="call_reporting_evidence"> Call / lead reporting 证据</label>
+      <label class="checkbox"><input type="checkbox" name="no_buyer_tracking_ready"> No buyer tracking 已映射</label>
+      <label class="checkbox"><input type="checkbox" name="missed_contact_tracking_ready"> Missed contact tracking 已映射</label>
+      <label class="checkbox"><input type="checkbox" name="dayparting_cohort_ready"> Dayparting cohort 已成熟</label>
+      <label class="checkbox"><input type="checkbox" name="fallback_buyer_reviewed"> Fallback buyer 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 cap、hours、timezone、no buyer、missed contact、holiday、fallback 或 hard stop 判断。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 cap snapshot、buyer hours、Google Ads schedule、call reporting、policy 或合同证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Buyer Capacity 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            buyer={{ review.buyer_name or "n/a" }}
+            · vertical={{ review.vertical }}
+            · geo={{ review.geo or "n/a" }}
+            · cap={{ review.cap_type }}/{{ review.cap_period }}
+          </small>
+          <small>
+            cap used={{ "%.2f"|format(review.cap_used_float) }}/{{ "%.2f"|format(review.cap_limit_float) }}
+            · remaining={{ "%.2f"|format(review.cap_remaining_float) }}
+            · usage={{ "%.2f"|format(review.cap_usage_percent) }}%
+            · projected={{ "%.2f"|format(review.projected_end_of_day_usage_percent) }}%
+          </small>
+          <small>
+            safe leads={{ "%.2f"|format(review.safe_leads_remaining_float) }}
+            · safe spend={{ "%.2f"|format(review.safe_media_spend_remaining_float) }}
+            · value/lead={{ "%.4f"|format(review.expected_paid_value_per_lead_float) }}
+          </small>
+          <small>
+            no buyer={{ "%.2f"|format(review.no_buyer_rate_percent) }}%
+            · missed={{ "%.2f"|format(review.missed_contact_rate_percent) }}%
+            · after-hours={{ "%.2f"|format(review.after_hours_lead_rate_percent) }}%
+          </small>
+          <small>
+            buyer tz={{ review.buyer_timezone }}
+            · account tz={{ review.account_timezone }}
+            · hours={{ review.hours_alignment_status }}
+            · schedule={{ review.ad_schedule_alignment_status }}
+            · holiday={{ review.holiday_readiness_status }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <ul class="compact">
+              {% for blocker in review.blockers[:6] %}<li>{{ blocker }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(", ") }}</small>
+          {% endif %}
+          {% if review.notes %}
+            <p class="muted">{{ review.notes }}</p>
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('main.update_buyer_capacity_status', review_id=review.id) }}">
+            <select name="status">
+              {% for value, label in status_options.items() %}
+                <option value="{{ value }}" {% if value == review.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button ghost" type="submit"><i data-lucide="check"></i>更新状态</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">暂无 Buyer Capacity 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}预约到场{% endblock %}
+{% block heading %}预约到场{% endblock %}
+{% block subheading %}把 booked、confirmed、showed、completed、paid、no-show、slot capacity 和 reminder consent 转成预约放量门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Appointment 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US dental showed appointment gate"></label>
+    <div class="split">
+      <label>Buyer<input name="buyer_name" placeholder="clinic / law firm / local service buyer / demo team"></label>
+      <label>垂类<input name="vertical" value="healthcare"></label>
+    </div>
+    <div class="split">
+      <label>Service type<input name="service_type" placeholder="dental consult / legal intake / HVAC estimate / B2B demo"></label>
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+    </div>
+    <label>Appointment platform<input name="appointment_platform" placeholder="Google Calendar / Calendly / Reserve with Google / internal calendar"></label>
+    <div class="split">
+      <label>Payout event
+        <select name="payout_event">
+          <option value="showed">showed</option>
+          <option value="booked">booked</option>
+          <option value="confirmed">confirmed</option>
+          <option value="completed">completed</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+        </select>
+      </label>
+      <label>Payout amount<input type="number" step="0.0001" min="0" name="payout_amount" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Estimated CPC<input type="number" step="0.0001" min="0" name="estimated_cpc" value="0"></label>
+      <label>Click-to-request %<input type="number" step="0.01" min="0" max="100" name="click_to_request_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Request-to-book %<input type="number" step="0.01" min="0" max="100" name="request_to_book_rate_percent" value="0"></label>
+      <label>Confirmation %<input type="number" step="0.01" min="0" max="100" name="confirmation_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Show %<input type="number" step="0.01" min="0" max="100" name="show_rate_percent" value="0"></label>
+      <label>Completed %<input type="number" step="0.01" min="0" max="100" name="completed_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Paid %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+      <label>Cancel %<input type="number" step="0.01" min="0" max="100" name="cancel_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>No-show %<input type="number" step="0.01" min="0" max="100" name="no_show_rate_percent" value="0"></label>
+      <label>Duplicate booking %<input type="number" step="0.01" min="0" max="100" name="duplicate_booking_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Reschedule %<input type="number" step="0.01" min="0" max="100" name="reschedule_rate_percent" value="0"></label>
+      <label>Reminder cost / booking<input type="number" step="0.0001" min="0" name="reminder_cost_per_booking" value="0"></label>
+    </div>
+    <div class="split">
+      <label>No-show cost / booking<input type="number" step="0.0001" min="0" name="no_show_cost_per_booking" value="0"></label>
+      <label>Available slots<input type="number" step="0.01" min="0" name="available_slots" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Expected bookings<input type="number" step="0.01" min="0" name="expected_bookings" value="0"></label>
+      <label>Lead age 小时<input type="number" min="0" name="lead_age_hours" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Slot delay 小时<input type="number" min="0" name="slot_delay_hours" value="0"></label>
+      <label>Calendar capacity
+        <select name="calendar_capacity_status">
+          <option value="unknown">unknown</option>
+          <option value="missing">missing</option>
+          <option value="constrained">constrained</option>
+          <option value="adequate">adequate</option>
+          <option value="open">open</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Timezone
+        <select name="timezone_status">
+          <option value="unclear">unclear</option>
+          <option value="missing">missing</option>
+          <option value="buyer_local">buyer_local</option>
+          <option value="user_local">user_local</option>
+          <option value="aligned">aligned</option>
+        </select>
+      </label>
+      <label>Reminder channel
+        <select name="reminder_channel">
+          <option value="email">email</option>
+          <option value="sms">sms</option>
+          <option value="manual_call">manual_call</option>
+          <option value="calendar_invite">calendar_invite</option>
+          <option value="email_calendar">email_calendar</option>
+          <option value="mixed">mixed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Reminder consent
+        <select name="reminder_consent_status">
+          <option value="missing">missing</option>
+          <option value="generic">generic</option>
+          <option value="email_only">email_only</option>
+          <option value="channel_specific">channel_specific</option>
+          <option value="opted_out">opted_out</option>
+        </select>
+      </label>
+      <label>Confirmation process
+        <select name="confirmation_process_status">
+          <option value="missing">missing</option>
+          <option value="manual">manual</option>
+          <option value="automated">automated</option>
+          <option value="confirmed_workflow">confirmed_workflow</option>
+        </select>
+      </label>
+    </div>
+    <label>Buyer terms
+      <select name="buyer_terms_status">
+        <option value="missing">missing</option>
+        <option value="draft">draft</option>
+        <option value="received">received</option>
+        <option value="approved">approved</option>
+      </select>
+    </label>
+    <label>Status map<textarea name="status_map" rows="3" placeholder="submitted -> eligible -> booked -> confirmed -> showed -> completed -> paid"></textarea></label>
+    <label>Slot policy<textarea name="slot_policy" rows="3" placeholder="timezone、available slots、service area、slot delay、business hours、holiday capacity。"></textarea></label>
+    <label>Reminder policy<textarea name="reminder_policy" rows="3" placeholder="channel、consent scope、template version、send timing、opt-out handling。"></textarea></label>
+    <label>No-show reason map<textarea name="no_show_reason_map" rows="3" placeholder="bad fit、slot too far、reminder missing、timezone mismatch、buyer cancelled、duplicate booking。"></textarea></label>
+    <label>Conversion mapping<textarea name="conversion_mapping" rows="3" placeholder="booked secondary；showed/completed/paid 才作为 mature value；no-show/cancel 进入内部负向反馈。"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="payout_definition_clear"> Payout / show / no-show 口径清楚</label>
+      <label class="checkbox"><input type="checkbox" name="duplicate_window_defined"> Duplicate booking window 已定义</label>
+      <label class="checkbox"><input type="checkbox" name="no_show_reason_map_ready"> No-show reason map 已确认</label>
+      <label class="checkbox"><input type="checkbox" name="calendar_capacity_evidence"> Calendar capacity 证据已保存</label>
+      <label class="checkbox"><input type="checkbox" name="reminder_template_reviewed"> Reminder template 已审核</label>
+      <label class="checkbox"><input type="checkbox" name="offline_conversion_mapping_ready"> Showed/Paid 回传映射已确认</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录是否可小测、为何需要修 no-show、是否要限制 slot/source/dayparting。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 calendar、buyer terms、appointment policy、Google Ads conversion、FTC/TCPA 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Appointment 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            buyer={{ review.buyer_name or "n/a" }}
+            · vertical={{ review.vertical }}
+            · service={{ review.service_type or "n/a" }}
+            · geo={{ review.geo or "n/a" }}
+            · payout_event={{ review.payout_event }}
+          </small>
+          <small>
+            payout={{ "%.4f"|format(review.payout_amount_float) }}
+            · EV/booking={{ "%.4f"|format(review.expected_value_per_booking_float) }}
+            · EV/click={{ "%.4f"|format(review.expected_value_per_click_float) }}
+            · safe CPC={{ "%.4f"|format(review.safe_cpc_float) }}
+            · margin={{ "%.2f"|format(review.cpc_margin_percent) }}%
+            · safe spend={{ "%.2f"|format(review.safe_appointment_spend_float) }}
+          </small>
+          <small>
+            request={{ "%.2f"|format(review.click_to_request_rate_percent) }}%
+            · book={{ "%.2f"|format(review.request_to_book_rate_percent) }}%
+            · confirm={{ "%.2f"|format(review.confirmation_rate_percent) }}%
+            · show={{ "%.2f"|format(review.show_rate_percent) }}%
+            · completed={{ "%.2f"|format(review.completed_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+          </small>
+          <small>
+            cancel={{ "%.2f"|format(review.cancel_rate_percent) }}%
+            · no-show={{ "%.2f"|format(review.no_show_rate_percent) }}%
+            · duplicate={{ "%.2f"|format(review.duplicate_booking_rate_percent) }}%
+            · reschedule={{ "%.2f"|format(review.reschedule_rate_percent) }}%
+          </small>
+          <small>
+            slots={{ "%.2f"|format(review.expected_bookings) }}/{{ "%.2f"|format(review.available_slots) }}
+            · lead age={{ review.lead_age_hours }}h
+            · slot delay={{ review.slot_delay_hours }}h
+            · capacity={{ review.calendar_capacity_status }}
+            · timezone={{ review.timezone_status }}
+          </small>
+          <small>
+            reminder={{ review.reminder_channel }} / {{ review.reminder_consent_status }}
+            · confirmation={{ review.confirmation_process_status }}
+            · buyer terms={{ review.buyer_terms_status }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.status_map %}<small>Status map: {{ review.status_map }}</small>{% endif %}
+          {% if review.no_show_reason_map %}<small>No-show map: {{ review.no_show_reason_map }}</small>{% endif %}
+          {% if review.conversion_mapping %}<small>Conversion mapping: {{ review.conversion_mapping }}</small>{% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_appointment_lead_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 Appointment 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

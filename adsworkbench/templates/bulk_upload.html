@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}批量变更{% endblock %}
+{% block heading %}批量变更{% endblock %}
+{% block subheading %}把 Google Ads Editor CSV / Scripts Bulk Upload 批次转成人工发布门禁和审计证据{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增批量变更评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }} · {{ offer.status }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search CSV batch review"></label>
+    <div class="split">
+      <label>导出类型
+        <select name="export_type">
+          <option value="editor_csv">editor_csv</option>
+          <option value="scripts_preview">scripts_preview</option>
+          <option value="bulk_upload_preview">bulk_upload_preview</option>
+        </select>
+      </label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Batch ID<input name="batch_id" placeholder="BULK-2026-001"></label>
+      <label>Target customer ID<input name="target_customer_id" placeholder="123-456-7890"></label>
+    </div>
+    <div class="split">
+      <label>CSV hash<input name="csv_hash" placeholder="sha256 或内部版本"></label>
+      <label>Payload hash<input name="payload_hash" placeholder="Scripts payload hash"></label>
+    </div>
+    <div class="split">
+      <label>Account timezone<input name="account_timezone" value="America/New_York"></label>
+      <label>Currency<input name="currency" value="USD"></label>
+    </div>
+    <div class="split">
+      <label>Rows<input type="number" min="0" name="row_count" value="0"></label>
+      <label>Keywords<input type="number" min="0" name="keyword_count" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Ads<input type="number" min="0" name="ad_count" value="0"></label>
+      <label>URL changes<input type="number" min="0" name="url_change_count" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Expected budget delta<input type="number" step="0.01" min="0" name="expected_budget_delta" value="0"></label>
+      <label>High-risk changes<input type="number" min="0" name="high_risk_change_count" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Preflight
+        <select name="preflight_status">
+          <option value="passed">passed</option>
+          <option value="warnings">warnings</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+      <label>Preview
+        <select name="preview_status">
+          <option value="not_run">not_run</option>
+          <option value="passed">passed</option>
+          <option value="warnings">warnings</option>
+          <option value="errors">errors</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Editor check
+        <select name="editor_check_status">
+          <option value="not_run">not_run</option>
+          <option value="passed">passed</option>
+          <option value="warnings">warnings</option>
+          <option value="errors">errors</option>
+        </select>
+      </label>
+      <label>Post status
+        <select name="post_status">
+          <option value="not_posted">not_posted</option>
+          <option value="posted">posted</option>
+          <option value="partial_error">partial_error</option>
+          <option value="rolled_back">rolled_back</option>
+        </select>
+      </label>
+    </div>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="default_paused" checked> 新建/变更对象默认 paused</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 人工审核已完成</label>
+      <label class="checkbox"><input type="checkbox" name="change_history_attached"> Change History 已回填</label>
+      <label class="checkbox"><input type="checkbox" name="rollback_plan"> 回滚计划已记录</label>
+      <label class="checkbox"><input type="checkbox" name="target_customer_confirmed"> 账号/时区/币种已确认</label>
+      <label class="checkbox"><input type="checkbox" name="policy_review_complete"> Claim/政策审核已完成</label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 Editor 检查、Bulk Upload preview、错误行、审批人、发布窗口和回滚方案。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 CSV、payload、Editor 检查结果、Bulk Upload preview、Change History 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>批量变更评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            batch={{ review.batch_id or "-" }}
+            · type={{ review.export_type }}
+            · scope={{ review.change_scope }}
+            · customer={{ review.target_customer_id or "-" }}
+            · {{ review.account_timezone or "-" }} / {{ review.currency or "-" }}
+          </small>
+          <small>
+            rows={{ review.row_count }}
+            · keywords={{ review.keyword_count }}
+            · ads={{ review.ad_count }}
+            · url changes={{ review.url_change_count }}
+            · high-risk changes={{ review.high_risk_change_count }}
+          </small>
+          <small>
+            budget delta ${{ "%.2f"|format(review.expected_budget_delta_float) }}
+            · preflight={{ review.preflight_status }}
+            · preview={{ review.preview_status }}
+            · editor={{ review.editor_check_status }}
+            · post={{ review.post_status }}
+          </small>
+          <small>
+            paused={{ "yes" if review.default_paused else "no" }}
+            · human review={{ "yes" if review.human_review else "no" }}
+            · rollback={{ "yes" if review.rollback_plan else "no" }}
+            · change history={{ "yes" if review.change_history_attached else "no" }}
+            · policy review={{ "yes" if review.policy_review_complete else "no" }}
+          </small>
+          {% if review.csv_hash or review.payload_hash %}
+            <small>
+              {% if review.csv_hash %}CSV hash: {{ review.csv_hash }}{% endif %}
+              {% if review.payload_hash %} · Payload hash: {{ review.payload_hash }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_bulk_upload_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有批量变更评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

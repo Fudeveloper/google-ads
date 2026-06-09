@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}搜索词治理{% endblock %}
+{% block heading %}搜索词治理{% endblock %}
+{% block subheading %}把真实 Search Terms、match type、收入成熟度和政策风险转成否定词、加词、拆组或页面建议{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Query Mining 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }} · {{ offer.status }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search query review"></label>
+    <div class="split">
+      <label>日期窗口<input name="date_window" placeholder="2026-06-01..2026-06-07"></label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Ads Customer ID<input name="ads_customer_id" placeholder="可选"></label>
+      <label>Campaign ref<input name="campaign_ref" placeholder="Google Ads campaign name/id"></label>
+    </div>
+    <div class="split">
+      <label>Ad group ref<input name="ad_group_ref" placeholder="ad group name/id"></label>
+      <label>Source file hash<input name="source_file_hash" placeholder="导出文件 hash 或批次号"></label>
+    </div>
+    <label>Keyword<input name="keyword_text" placeholder="触发关键词"></label>
+    <div class="split">
+      <label>Keyword match type
+        <select name="keyword_match_type">
+          <option value="broad">broad</option>
+          <option value="phrase">phrase</option>
+          <option value="exact">exact</option>
+          <option value="pmax_theme">pmax_theme</option>
+          <option value="dsa">dsa</option>
+        </select>
+      </label>
+      <label>Search term match type<input name="search_term_match_type" placeholder="报表里的匹配类型"></label>
+    </div>
+    <label>Search term<input name="search_term" required placeholder="真实搜索词或 Search Terms Insights category"></label>
+    <div class="split">
+      <label>Query intent
+        <select name="query_intent">
+          <option value="unknown">unknown</option>
+          <option value="commercial">commercial</option>
+          <option value="comparison">comparison</option>
+          <option value="transactional">transactional</option>
+          <option value="informational">informational</option>
+          <option value="brand">brand</option>
+          <option value="official">official</option>
+          <option value="support">support</option>
+          <option value="job">job</option>
+          <option value="free">free</option>
+          <option value="sensitive">sensitive</option>
+        </select>
+      </label>
+      <label>Intent fit score<input type="number" min="0" max="100" name="intent_fit_score" value="70"></label>
+    </div>
+    <div class="split">
+      <label>Network
+        <select name="network">
+          <option value="google_search">google_search</option>
+          <option value="search_partners">search_partners</option>
+          <option value="pmax">pmax</option>
+          <option value="dsa">dsa</option>
+        </select>
+      </label>
+      <label>Device<input name="device" value="desktop"></label>
+    </div>
+    <div class="split">
+      <label>国家<input name="country" value="US"></label>
+      <label>Landing version<input name="landing_version" placeholder="页面版本"></label>
+    </div>
+    <div class="split">
+      <label>Clicks<input type="number" min="0" name="clicks" value="0"></label>
+      <label>Sessions<input type="number" min="0" name="sessions" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Conversions<input type="number" min="0" name="conversions" value="0"></label>
+      <label>Cost<input type="number" step="0.01" min="0" name="cost" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved revenue<input type="number" step="0.01" min="0" name="approved_revenue" value="0"></label>
+      <label>Paid revenue<input type="number" step="0.01" min="0" name="paid_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Buyer reject %<input type="number" step="0.01" min="0" max="100" name="buyer_reject_rate_percent" value="0"></label>
+      <label>Conversion lag days<input type="number" min="0" name="conversion_lag_days" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Revenue status
+        <select name="revenue_status">
+          <option value="none">none</option>
+          <option value="reported">reported</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+        </select>
+      </label>
+      <label>Data status
+        <select name="data_status">
+          <option value="fresh">fresh</option>
+          <option value="partial">partial</option>
+          <option value="mature">mature</option>
+        </select>
+      </label>
+    </div>
+    <label>Policy risk
+      <select name="policy_risk">
+        <option value="medium">medium</option>
+        <option value="low">low</option>
+        <option value="high">high</option>
+      </select>
+    </label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="brand_or_official"> 品牌词 / 官方关系风险</label>
+      <label class="checkbox"><input type="checkbox" name="support_or_login"> 支持 / 登录 / 取消 / 客服意图</label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 query 意图、否定词层级、加词理由、页面 brief、收入回填窗口或风险审计结论。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 search terms report、Search Terms Insights、Change History、政策或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Query Mining 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            query="{{ review.search_term }}"
+            {% if review.keyword_text %} · keyword="{{ review.keyword_text }}"{% endif %}
+            · match={{ review.keyword_match_type }}
+            · intent={{ review.query_intent }}
+            · fit={{ review.intent_fit_score }}
+          </small>
+          <small>
+            network={{ review.network }}
+            · device={{ review.device or "-" }}
+            · geo={{ review.country or "-" }}
+            · window={{ review.date_window or "-" }}
+            · data={{ review.data_status }}
+            · revenue={{ review.revenue_status }}
+          </small>
+          <small>
+            clicks={{ review.clicks }}
+            · sessions={{ review.sessions }}
+            · click/session {{ "%.2f"|format(review.click_session_rate) }}%
+            · conversions={{ review.conversions }}
+            · cpc ${{ "%.4f"|format(review.cpc) }}
+          </small>
+          <small>
+            cost ${{ "%.2f"|format(review.cost_float) }}
+            · approved ${{ "%.2f"|format(review.approved_revenue_float) }}
+            · paid ${{ "%.2f"|format(review.paid_revenue_float) }}
+            · approved RPV ${{ "%.4f"|format(review.approved_rpv) }}
+            · paid RPV ${{ "%.4f"|format(review.paid_rpv) }}
+          </small>
+          <small>
+            approved ROI {{ "%.2f"|format(review.approved_roi) }}%
+            · paid ROI {{ "%.2f"|format(review.paid_roi) }}%
+            · buyer reject {{ "%.2f"|format(review.buyer_reject_rate_percent) }}%
+            · policy={{ review.policy_risk }}
+            · lag={{ review.conversion_lag_days }}d
+          </small>
+          <small>
+            negative={{ review.negative_match_type }} / {{ review.negative_level }}
+            · brand/official={{ "yes" if review.brand_or_official else "no" }}
+            · support/login={{ "yes" if review.support_or_login else "no" }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_query_mining_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 Query Mining 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}投放草稿{% endblock %}
+{% block heading %}投放草稿{% endblock %}
+{% block subheading %}把 Offer、创意和关键词整理为可审核、可导出的投放结构{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增草稿</h2>
+    <label>Offer
+      <select name="offer_id" required>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>创意组
+      <select name="creative_set_id">
+        <option value="">不绑定</option>
+        {% for creative in creatives %}
+          <option value="{{ creative.id }}">{{ creative.offer.name }} · {{ creative.angle }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Campaign 名称<input name="name" required placeholder="US Search - Offer - Test"></label>
+    <div class="split">
+      <label>渠道<input name="channel" value="Google Search"></label>
+      <label>日预算<input name="daily_budget" value="30"></label>
+    </div>
+    <label>出价策略<input name="bid_strategy" value="Maximize Clicks"></label>
+    <label>Final URL<input name="final_url" placeholder="留空则用 Offer 目标 URL"></label>
+    <label>备注<textarea name="notes" rows="3"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>创建草稿</button>
+  </form>
+
+  <div class="panel">
+    <h2>草稿列表</h2>
+    <div class="list">
+      {% for campaign in campaigns %}
+        <div class="list-row">
+          <strong>{{ campaign.name }}</strong>
+          <span>{{ campaign.offer.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day · {{ campaign_statuses.get(campaign.status, campaign.status) }}</span>
+          {% set blockers = preflight_by_campaign.get(campaign.id, []) %}
+          {% if blockers %}
+            <small>Preflight: {{ blockers|join(" | ") }}</small>
+          {% else %}
+            <small>Preflight: 可导出到人工 CSV / Scripts 流程</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in campaign_statuses.items() %}
+              {% if value != campaign.status %}
+                <form method="post" action="{{ url_for('main.update_campaign_status', campaign_id=campaign.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="inline-actions">
+            <a class="button small secondary" href="{{ url_for('main.export_campaign', campaign_id=campaign.id) }}"><i data-lucide="download"></i>CSV</a>
+            <a class="button small secondary" href="{{ url_for('main.export_campaign_script', campaign_id=campaign.id) }}"><i data-lucide="file-json"></i>Script JSON</a>
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有投放草稿。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

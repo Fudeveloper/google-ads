@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}任务中心{% endblock %}
+{% block heading %}任务中心{% endblock %}
+{% block subheading %}记录和执行安全范围内的采集复核、创意准备、导出检查、链接检查和指标复核任务{% endblock %}
+{% block content %}
+<section class="panel">
+  <p class="muted">
+    任务中心只用于安全复核、预览、导出和对账。上线新任务类型前请先对照
+    <a href="{{ url_for('main.knowledge', name='task_orchestration') }}">任务编排、安全审批、执行日志与事故复盘手册</a>。
+  </p>
+</section>
+
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增任务</h2>
+    <label>任务名称<input name="name" required placeholder="Daily script payload review"></label>
+    <label>任务类型
+      <select name="task_type" required>
+        {% for value, label in task_types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>链接计划
+      <select name="link_rule_id">
+        <option value="">不绑定</option>
+        {% for rule in link_rules %}<option value="{{ rule.id }}">{{ rule.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="split">
+      <label>调度模式
+        <select name="schedule_mode">
+          <option>manual</option>
+          <option>interval</option>
+        </select>
+      </label>
+      <label>间隔分钟<input name="interval_minutes" value="1440"></label>
+    </div>
+    <label>备注<textarea name="notes" rows="3" placeholder="任务目的、审核人、数据来源等"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>创建任务</button>
+  </form>
+
+  <div class="panel">
+    <h2>任务列表</h2>
+    <div class="list">
+      {% for job in jobs %}
+        <div class="list-row">
+          <strong>{{ job.name }}</strong>
+          <span>{{ job.task_type }} · {{ job.schedule_mode }} · {{ job.status }}</span>
+          <small>
+            runs {{ job.run_count }} · success {{ job.success_count }} · failed {{ job.failure_count }}
+            {% if job.offer %} · {{ job.offer.name }}{% endif %}
+            {% if job.campaign_draft %} · {{ job.campaign_draft.name }}{% endif %}
+          </small>
+          {% if job.last_result %}
+            <pre class="compact">{{ job.last_result }}</pre>
+          {% endif %}
+          <form method="post" action="{{ url_for('main.run_task', job_id=job.id) }}">
+            <button class="button small secondary" type="submit"><i data-lucide="play"></i>执行一次</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">还没有任务。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

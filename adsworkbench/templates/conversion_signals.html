@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}信号出价{% endblock %}
+{% block heading %}信号出价{% endblock %}
+{% block subheading %}把 conversion action、primary/secondary、value、lag、dedupe 和 bid strategy report 转成自动出价门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Conversion Signal 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US qualified lead bidding gate"></label>
+    <div class="split">
+      <label>垂类<input name="vertical" value="b2b_saas"></label>
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+    </div>
+    <label>Conversion goal<input name="conversion_goal_name" required placeholder="例如 lead_quality_us"></label>
+    <label>Conversion action<input name="conversion_action_name" required placeholder="例如 lead_qualified_b2b_us"></label>
+    <div class="split">
+      <label>Action stage
+        <select name="action_stage">
+          <option value="submitted">submitted</option>
+          <option value="micro">micro</option>
+          <option value="accepted">accepted</option>
+          <option value="qualified">qualified</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+        </select>
+      </label>
+      <label>当前 primary 状态
+        <select name="primary_status">
+          <option value="secondary">secondary</option>
+          <option value="primary">primary</option>
+          <option value="mixed">mixed</option>
+          <option value="unknown">unknown</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Value mode
+        <select name="value_mode">
+          <option value="expected">expected</option>
+          <option value="zero">zero</option>
+          <option value="gross">gross</option>
+          <option value="fixed_guess">fixed_guess</option>
+          <option value="approved">approved</option>
+          <option value="paid">paid</option>
+          <option value="net">net</option>
+        </select>
+      </label>
+      <label>Bid strategy
+        <select name="bid_strategy">
+          <option value="manual_cpc">manual_cpc</option>
+          <option value="max_clicks">max_clicks</option>
+          <option value="max_conversions">max_conversions</option>
+          <option value="target_cpa">target_cpa</option>
+          <option value="max_conversion_value">max_conversion_value</option>
+          <option value="target_roas">target_roas</option>
+          <option value="broad_ai_max">broad_ai_max</option>
+          <option value="pmax">pmax</option>
+        </select>
+      </label>
+    </div>
+    <label>Traffic scope<input name="traffic_scope" value="search_exact" placeholder="search_exact / broad / pmax / demand_gen"></label>
+    <div class="split">
+      <label>Weekly conversions<input type="number" step="0.01" min="0" name="weekly_conversions" value="0"></label>
+      <label>Weekly approved<input type="number" step="0.01" min="0" name="weekly_approved_conversions" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Weekly paid<input type="number" step="0.01" min="0" name="weekly_paid_conversions" value="0"></label>
+      <label>Reported value / conversion<input type="number" step="0.0001" min="0" name="reported_value_per_conversion" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved rate %<input type="number" step="0.01" min="0" max="100" name="approved_rate_percent" value="0"></label>
+      <label>Paid rate %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Click ID coverage %<input type="number" step="0.01" min="0" max="100" name="click_id_coverage_percent" value="0"></label>
+      <label>Offline match rate %<input type="number" step="0.01" min="0" max="100" name="offline_match_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Duplicate rate %<input type="number" step="0.01" min="0" max="100" name="duplicate_rate_percent" value="0"></label>
+      <label>Incident count 30d<input type="number" min="0" name="incident_count_30d" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Average lag days<input type="number" step="0.01" min="0" name="average_lag_days" value="0"></label>
+      <label>P95 lag days<input type="number" step="0.01" min="0" name="p95_lag_days" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Segment granularity
+        <select name="segment_granularity_status">
+          <option value="mixed">mixed</option>
+          <option value="unsegmented">unsegmented</option>
+          <option value="offer_geo">offer_geo</option>
+          <option value="offer_geo_buyer">offer_geo_buyer</option>
+          <option value="offer_geo_buyer_source">offer_geo_buyer_source</option>
+        </select>
+      </label>
+      <label>Policy / consent
+        <select name="policy_consent_status">
+          <option value="missing">missing</option>
+          <option value="partial">partial</option>
+          <option value="reviewed">reviewed</option>
+          <option value="sensitive_reviewed">sensitive_reviewed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Customer data
+        <select name="customer_data_status">
+          <option value="missing">missing</option>
+          <option value="not_used">not_used</option>
+          <option value="policy_reviewed">policy_reviewed</option>
+          <option value="pii_in_url">pii_in_url</option>
+        </select>
+      </label>
+      <label>Offline import
+        <select name="offline_import_status">
+          <option value="none">none</option>
+          <option value="draft">draft</option>
+          <option value="manual_reviewed">manual_reviewed</option>
+          <option value="diagnostics_ready">diagnostics_ready</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Transaction ID
+        <select name="transaction_id_status">
+          <option value="missing">missing</option>
+          <option value="unstable">unstable</option>
+          <option value="unique_per_stage">unique_per_stage</option>
+          <option value="idempotent">idempotent</option>
+        </select>
+      </label>
+      <label>Lag stability
+        <select name="lag_stability_status">
+          <option value="unknown">unknown</option>
+          <option value="unstable">unstable</option>
+          <option value="seasonal">seasonal</option>
+          <option value="stable">stable</option>
+        </select>
+      </label>
+    </div>
+    <label>Bid strategy report
+      <select name="bid_strategy_status">
+        <option value="unknown">unknown</option>
+        <option value="learning">learning</option>
+        <option value="limited">limited</option>
+        <option value="misconfigured">misconfigured</option>
+        <option value="stable">stable</option>
+      </select>
+    </label>
+    <label>Goal change summary<textarea name="goal_change_summary" rows="3" placeholder="primary/secondary、goal、value 或 bidding 变更摘要"></textarea></label>
+    <label>Affected campaigns<textarea name="affected_campaigns" rows="3" placeholder="受影响 campaign、ad group、asset group 或 experiment"></textarea></label>
+    <label>Value mapping notes<textarea name="value_mapping_notes" rows="3" placeholder="submitted / qualified / approved / paid 到 value mode 的映射依据"></textarea></label>
+    <label>Dedupe notes<textarea name="dedupe_notes" rows="3" placeholder="transaction_id、row hash、重复 postback 和重跑导入规则"></textarea></label>
+    <label>Lag notes<textarea name="lag_notes" rows="3" placeholder="conversion lag、approval lag、paid lag 和观察窗口"></textarea></label>
+    <label>Diagnostics notes<textarea name="diagnostics_notes" rows="3" placeholder="offline import diagnostics、match rate、error、change history 证据"></textarea></label>
+    <label>Rollback plan<textarea name="rollback_plan" rows="3" placeholder="信号污染时降级到 secondary、manual CPC、暂停 ramp 的计划"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="primary_secondary_reviewed"> Primary / secondary 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="value_mapping_reviewed"> Value mapping 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="transaction_id_dedupe_ready"> Transaction ID 去重就绪</label>
+      <label class="checkbox"><input type="checkbox" name="offline_import_diagnostics_ready"> Offline diagnostics 就绪</label>
+      <label class="checkbox"><input type="checkbox" name="conversion_lag_reviewed"> Conversion lag 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="segment_split_ready"> Segment split 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="consent_policy_reviewed"> Consent / policy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="bid_strategy_report_reviewed"> Bid strategy report 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="change_history_evidence"> Change history 证据</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录是否可做 primary、是否适合 tCPA/tROAS/PMax/Broad、需要等待哪个 cohort 成熟。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Google Ads conversion、value、offline import、diagnostics、buyer feedback 或 change history URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Conversion Signal 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ review.bid_readiness }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            goal={{ review.conversion_goal_name }}
+            · action={{ review.conversion_action_name }}
+            · stage={{ review.action_stage }}
+            · current={{ review.primary_status }}
+            · recommended={{ review.recommended_primary_status }}
+          </small>
+          <small>
+            value={{ review.value_mode }}
+            · reported={{ "%.4f"|format(review.reported_value_per_conversion_float) }}
+            · expected paid={{ "%.4f"|format(review.expected_paid_value_per_conversion_float) }}
+            · safe target CPA={{ "%.4f"|format(review.safe_target_cpa_float) }}
+          </small>
+          <small>
+            weekly={{ "%.2f"|format(review.weekly_conversions_float) }}
+            · approved={{ "%.2f"|format(review.weekly_approved_conversions_float) }}
+            · paid={{ "%.2f"|format(review.weekly_paid_conversions_float) }}
+            · approved rate={{ "%.2f"|format(review.approved_rate_percent) }}%
+            · paid rate={{ "%.2f"|format(review.paid_rate_percent) }}%
+          </small>
+          <small>
+            click id={{ "%.2f"|format(review.click_id_coverage_percent) }}%
+            · match={{ "%.2f"|format(review.offline_match_rate_percent) }}%
+            · duplicate={{ "%.2f"|format(review.duplicate_rate_percent) }}%
+            · lag avg/p95={{ "%.2f"|format(review.average_lag_days) }}/{{ "%.2f"|format(review.p95_lag_days) }}d
+          </small>
+          <small>
+            segment={{ review.segment_granularity_status }}
+            · consent={{ review.policy_consent_status }}
+            · customer data={{ review.customer_data_status }}
+            · import={{ review.offline_import_status }}
+            · transaction={{ review.transaction_id_status }}
+          </small>
+          {% if review.score_components %}
+            <small>
+              Components:
+              {% for key, value in review.score_components.items() %}
+                {{ key }}={{ value }}{% if not loop.last %} · {% endif %}
+              {% endfor %}
+            </small>
+          {% endif %}
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <ul class="compact">
+              {% for blocker in review.blockers[:8] %}<li>{{ blocker }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}
+            <p class="muted">{{ review.notes }}</p>
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('main.update_conversion_signal_status', review_id=review.id) }}">
+            <select name="status">
+              {% for value, label in status_options.items() %}
+                <option value="{{ value }}" {% if value == review.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button ghost" type="submit"><i data-lucide="check"></i>更新状态</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">暂无 Conversion Signal 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}优化建议与异常告警{% endblock %}
+{% block heading %}优化建议与异常告警{% endblock %}
+{% block subheading %}基于 CPC、RPV、ROI、CTR、样本量和风险规则输出止损、隔离、复核和扩量建议{% endblock %}
+{% block content %}
+<section class="panel">
+  <table>
+    <thead><tr><th>级别</th><th>动作</th><th>Offer</th><th>告警 / 建议</th><th>状态</th><th>处理</th></tr></thead>
+    <tbody>
+      {% for action in actions %}
+        <tr>
+          <td><span class="badge {{ action.severity }}">{{ action.severity }}</span></td>
+          <td>{{ action.action_type }}</td>
+          <td>{{ action.offer.name }}</td>
+          <td>{{ action.message }}</td>
+          <td>{{ status_options.get(action.status, action.status) }}</td>
+          <td>
+            <div class="inline-actions">
+              {% for value, label in status_options.items() %}
+                {% if value != action.status %}
+                  <form method="post" action="{{ url_for('main.update_optimization_status', action_id=action.id) }}">
+                    <input type="hidden" name="status" value="{{ value }}">
+                    <button class="button small secondary" type="submit">{{ label }}</button>
+                  </form>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="muted">暂无建议。</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

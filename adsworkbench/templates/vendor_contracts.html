@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}合同争议{% endblock %}
+{% block heading %}合同争议{% endblock %}
+{% block subheading %}把供应商、IO、质量条款、报表差异、refund、credit、makegood 和证据包转成采购门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增供应商合同评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }} · {{ offer.status }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 Newsletter IO readiness check"></label>
+    <label>供应商名称<input name="vendor_name" required placeholder="媒体、网络、newsletter 或 vendor 名称"></label>
+    <div class="split">
+      <label>供应商类型
+        <select name="vendor_type">
+          <option value="traffic_vendor">traffic_vendor</option>
+          <option value="direct_publisher">direct_publisher</option>
+          <option value="native_network">native_network</option>
+          <option value="newsletter">newsletter</option>
+          <option value="affiliate_network">affiliate_network</option>
+          <option value="lead_buyer">lead_buyer</option>
+        </select>
+      </label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>IO 编号<input name="io_number" placeholder="IO / contract ref"></label>
+      <label>Line item<input name="line_item_ref" placeholder="国家、placement、format 或 device"></label>
+    </div>
+    <div class="split">
+      <label>合同状态
+        <select name="contract_status">
+          <option value="prospect">prospect</option>
+          <option value="preapproved">preapproved</option>
+          <option value="active_test">active_test</option>
+          <option value="active_scale">active_scale</option>
+          <option value="watchlist">watchlist</option>
+          <option value="suspended">suspended</option>
+          <option value="blocked">blocked</option>
+          <option value="retired">retired</option>
+        </select>
+      </label>
+      <label>Pricing
+        <select name="pricing_model">
+          <option value="cpc">cpc</option>
+          <option value="cpm">cpm</option>
+          <option value="cpa">cpa</option>
+          <option value="cpl">cpl</option>
+          <option value="flat_fee">flat_fee</option>
+          <option value="hybrid">hybrid</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>来源明细
+        <select name="source_detail_level">
+          <option value="full">full</option>
+          <option value="partial">partial</option>
+          <option value="opaque">opaque</option>
+        </select>
+      </label>
+      <label>停源控制
+        <select name="stop_control">
+          <option value="precise">precise</option>
+          <option value="partial">partial</option>
+          <option value="none">none</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Tracking 完整度 %<input type="number" step="0.01" min="0" max="100" name="tracking_completeness_percent" value="90"></label>
+      <label>报表延迟天数<input type="number" min="0" name="report_delay_days" value="1"></label>
+    </div>
+    <div class="split">
+      <label>报表差异 %<input type="number" step="0.01" min="0" max="100" name="discrepancy_rate_percent" value="0"></label>
+      <label>Invalid traffic %<input type="number" step="0.01" min="0" max="100" name="invalid_traffic_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Buyer reject %<input type="number" step="0.01" min="0" max="100" name="buyer_reject_rate_percent" value="0"></label>
+      <label>Payment terms 天数<input type="number" min="0" name="payment_terms_days" value="30"></label>
+    </div>
+    <div class="split">
+      <label>Budget cap<input type="number" step="0.01" min="0" name="budget_cap" value="0"></label>
+      <label>Spend to date<input type="number" step="0.01" min="0" name="spend_to_date" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved revenue<input type="number" step="0.01" min="0" name="approved_revenue" value="0"></label>
+      <label>Paid revenue<input type="number" step="0.01" min="0" name="paid_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Invoice amount<input type="number" step="0.01" min="0" name="invoice_amount" value="0"></label>
+      <label>Disputed amount<input type="number" step="0.01" min="0" name="disputed_amount" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Refund / credit<input type="number" step="0.01" min="0" name="refund_credit_amount" value="0"></label>
+      <label>Makegood value<input type="number" step="0.01" min="0" name="makegood_value" value="0"></label>
+    </div>
+    <div class="split">
+      <label>争议响应天数<input type="number" min="0" name="dispute_response_days" value="0"></label>
+      <label>Refund 条款
+        <select name="refund_terms_status">
+          <option value="clear">clear</option>
+          <option value="partial">partial</option>
+          <option value="missing">missing</option>
+        </select>
+      </label>
+    </div>
+    <label>Policy issue
+      <select name="policy_issue_state">
+        <option value="clean">clean</option>
+        <option value="warning">warning</option>
+        <option value="active">active</option>
+      </select>
+    </label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="tracking_appendix"> Tracking appendix</label>
+      <label class="checkbox"><input type="checkbox" name="reporting_appendix"> Reporting appendix</label>
+      <label class="checkbox"><input type="checkbox" name="quality_clause"> Quality clause</label>
+      <label class="checkbox"><input type="checkbox" name="refund_clause"> Refund / credit / makegood clause</label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 IO 关键条款、报表差异、争议窗口、退款/credit/makegood 结论和 owner。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个合同、IO、报表、invoice、credit note、邮件、截图或政策 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>供应商合同评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            vendor={{ review.vendor_name }}
+            · type={{ review.vendor_type }}
+            · contract={{ review.contract_status }}
+            · pricing={{ review.pricing_model }}
+            {% if review.io_number %} · IO={{ review.io_number }}{% endif %}
+          </small>
+          <small>
+            source={{ review.source_detail_level }}
+            · stop={{ review.stop_control }}
+            · tracking {{ "%.2f"|format(review.tracking_completeness_percent) }}%
+            · report delay {{ review.report_delay_days }}d
+            · discrepancy {{ "%.2f"|format(review.discrepancy_rate_percent) }}%
+          </small>
+          <small>
+            invalid {{ "%.2f"|format(review.invalid_traffic_rate_percent) }}%
+            · reject {{ "%.2f"|format(review.buyer_reject_rate_percent) }}%
+            · policy={{ review.policy_issue_state }}
+            · payment {{ review.payment_terms_days }}d
+            · refund terms={{ review.refund_terms_status }}
+          </small>
+          <small>
+            budget ${{ "%.2f"|format(review.budget_cap_float) }}
+            · spend ${{ "%.2f"|format(review.spend_to_date_float) }}
+            · approved ${{ "%.2f"|format(review.approved_revenue_float) }}
+            · paid ${{ "%.2f"|format(review.paid_revenue_float) }}
+            · paid ROI {{ "%.2f"|format(review.paid_roi) }}%
+          </small>
+          <small>
+            invoice ${{ "%.2f"|format(review.invoice_amount_float) }}
+            · disputed ${{ "%.2f"|format(review.disputed_amount_float) }}
+            · credit ${{ "%.2f"|format(review.refund_credit_amount_float) }}
+            · makegood ${{ "%.2f"|format(review.makegood_value_float) }}
+            · at risk ${{ "%.2f"|format(review.amount_at_risk) }}
+          </small>
+          <small>
+            tracking appendix={{ "yes" if review.tracking_appendix else "no" }}
+            · reporting appendix={{ "yes" if review.reporting_appendix else "no" }}
+            · quality clause={{ "yes" if review.quality_clause else "no" }}
+            · refund clause={{ "yes" if review.refund_clause else "no" }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_vendor_contract_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有供应商合同评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

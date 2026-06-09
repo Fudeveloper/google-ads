@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}Lead 定价{% endblock %}
+{% block heading %}Lead 定价{% endblock %}
+{% block subheading %}把 headline payout、真实 paid cohort、scrub reserve、cap 和 payment term 转成投放前定价门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Lead 定价评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US B2B demo qualified CPL rate review"></label>
+    <div class="split">
+      <label>Buyer<input name="buyer_name" placeholder="direct advertiser / network / marketplace buyer"></label>
+      <label>垂类<input name="vertical" value="b2b_saas"></label>
+    </div>
+    <div class="split">
+      <label>Geo<input name="geo" placeholder="US / CA / state / service area"></label>
+      <label>币种<input name="currency" value="USD"></label>
+    </div>
+    <div class="split">
+      <label>Source type
+        <select name="source_type">
+          <option value="search">search</option>
+          <option value="native">native</option>
+          <option value="social">social</option>
+          <option value="email">email</option>
+          <option value="direct_buy">direct_buy</option>
+          <option value="partner">partner</option>
+        </select>
+      </label>
+      <label>Exclusivity
+        <select name="exclusivity">
+          <option value="exclusive">exclusive</option>
+          <option value="shared">shared</option>
+          <option value="aged">aged</option>
+          <option value="recycled">recycled</option>
+          <option value="hybrid">hybrid</option>
+        </select>
+      </label>
+    </div>
+    <label>Payout model
+      <select name="payout_model">
+        <option value="qualified_cpl">qualified_cpl</option>
+        <option value="raw_cpl">raw_cpl</option>
+        <option value="validated_cpl">validated_cpl</option>
+        <option value="pay_per_call">pay_per_call</option>
+        <option value="appointment">appointment</option>
+        <option value="cpa">cpa</option>
+        <option value="revshare">revshare</option>
+        <option value="hybrid">hybrid</option>
+      </select>
+    </label>
+    <div class="split">
+      <label>Headline payout<input type="number" step="0.0001" min="0" name="headline_payout" value="0"></label>
+      <label>Approved unit payout<input type="number" step="0.0001" min="0" name="unit_payout" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Proposed payout<input type="number" step="0.0001" min="0" name="proposed_payout" value="0"></label>
+      <label>Floor payout<input type="number" step="0.0001" min="0" name="minimum_acceptable_payout" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Estimated CPC<input type="number" step="0.0001" min="0" name="estimated_cpc" value="0"></label>
+      <label>Click-to-lead %<input type="number" step="0.01" min="0" max="100" name="click_to_lead_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Accepted %<input type="number" step="0.01" min="0" max="100" name="accepted_rate_percent" value="0"></label>
+      <label>Qualified %<input type="number" step="0.01" min="0" max="100" name="qualified_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approval %<input type="number" step="0.01" min="0" max="100" name="approval_rate_percent" value="0"></label>
+      <label>Paid %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Return %<input type="number" step="0.01" min="0" max="100" name="return_rate_percent" value="0"></label>
+      <label>Scrub buffer %<input type="number" step="0.01" min="0" max="100" name="scrub_buffer_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Chargeback %<input type="number" step="0.01" min="0" max="100" name="chargeback_rate_percent" value="0"></label>
+      <label>Cashflow cost %<input type="number" step="0.01" min="0" max="100" name="cashflow_cost_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Variable cost / click<input type="number" step="0.0001" min="0" name="variable_cost_per_click" value="0"></label>
+      <label>Tracking cost / click<input type="number" step="0.0001" min="0" name="tracking_cost_per_click" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Content cost / click<input type="number" step="0.0001" min="0" name="content_cost_per_click" value="0"></label>
+      <label>Expected volume<input type="number" step="0.01" min="0" name="expected_volume" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Buyer cap<input type="number" step="0.01" min="0" name="cap_limit" value="0"></label>
+      <label>Return window 天数<input type="number" min="0" name="return_window_days" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Payment term 天数<input type="number" min="0" name="payment_term_days" value="0"></label>
+      <label>Buyer terms
+        <select name="buyer_terms_status">
+          <option value="missing">missing</option>
+          <option value="draft">draft</option>
+          <option value="received">received</option>
+          <option value="approved">approved</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Quality evidence
+        <select name="quality_evidence_status">
+          <option value="missing">missing</option>
+          <option value="anecdotal">anecdotal</option>
+          <option value="last_7_days">last_7_days</option>
+          <option value="cohort_30_days">cohort_30_days</option>
+          <option value="paid_cohort">paid_cohort</option>
+        </select>
+      </label>
+      <label>Source transparency
+        <select name="source_transparency">
+          <option value="partial">partial</option>
+          <option value="opaque">opaque</option>
+          <option value="source_subid">source_subid</option>
+          <option value="buyer_approved">buyer_approved</option>
+        </select>
+      </label>
+    </div>
+    <label>Consent evidence
+      <select name="consent_evidence">
+        <option value="missing">missing</option>
+        <option value="generic">generic</option>
+        <option value="buyer_named">buyer_named</option>
+        <option value="channel_specific">channel_specific</option>
+      </select>
+    </label>
+    <label>Qualification definition<textarea name="qualification_definition" rows="3" placeholder="写清 billable / qualified / paid 的字段、阈值和 buyer acceptance 条件。"></textarea></label>
+    <label>Rate card evidence<textarea name="rate_card_evidence" rows="3" placeholder="记录 approved rate card、effective date、geo/source/tier、截图或文档引用。"></textarea></label>
+    <label>Negotiation evidence<textarea name="negotiation_evidence" rows="3" placeholder="paid cohort、reject reason、contact rate、complaint rate、source transparency、invoice evidence。"></textarea></label>
+    <label>Reject reason summary<textarea name="reject_reason_summary" rows="3" placeholder="bad geo、duplicate、invalid phone、not qualified、returned、complaint、no buyer。"></textarea></label>
+    <label>Invoice / payment terms<textarea name="invoice_terms" rows="3" placeholder="invoice package、payment term、return window、allowed return reason、credit / clawback。"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="reject_reason_map_ready"> Reject reason map 已确认</label>
+      <label class="checkbox"><input type="checkbox" name="invoice_evidence"> Invoice / settlement 证据已保存</label>
+      <label class="checkbox"><input type="checkbox" name="dispute_reserve_present"> Dispute reserve 已设置</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录为什么需要补证据、是否可谈价、是否可小测、是否要降低预算或重算 floor。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 rate card、buyer terms、invoice、Google policy、postback/payout 文档或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Lead 定价评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            buyer={{ review.buyer_name or "n/a" }}
+            · vertical={{ review.vertical }}
+            · geo={{ review.geo or "n/a" }}
+            · source={{ review.source_type }}
+            · {{ review.exclusivity }}
+            · {{ review.payout_model }}
+          </small>
+          <small>
+            headline={{ "%.4f"|format(review.headline_payout_float) }}
+            · unit={{ "%.4f"|format(review.unit_payout_float) }}
+            · proposed={{ "%.4f"|format(review.proposed_payout_float) }}
+            · floor={{ "%.4f"|format(review.minimum_acceptable_payout_float) }}
+            · {{ review.currency }}
+          </small>
+          <small>
+            effective={{ "%.4f"|format(review.effective_payout_float) }}
+            · paid EPC={{ "%.4f"|format(review.paid_epc_float) }}
+            · safe CPC={{ "%.4f"|format(review.safe_cpc_float) }}
+            · margin/click={{ "%.4f"|format(review.margin_per_click_float) }}
+            · reserve={{ "%.4f"|format(review.reserve_amount_float) }}
+          </small>
+          <small>
+            CVR={{ "%.2f"|format(review.click_to_lead_rate_percent) }}%
+            · accepted={{ "%.2f"|format(review.accepted_rate_percent) }}%
+            · qualified={{ "%.2f"|format(review.qualified_rate_percent) }}%
+            · approval={{ "%.2f"|format(review.approval_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+          </small>
+          <small>
+            return={{ "%.2f"|format(review.return_rate_percent) }}%
+            · scrub={{ "%.2f"|format(review.scrub_buffer_percent) }}%
+            · chargeback={{ "%.2f"|format(review.chargeback_rate_percent) }}%
+            · cap={{ "%.2f"|format(review.expected_volume) }}/{{ "%.2f"|format(review.cap_limit) }}
+            · return window={{ review.return_window_days }}d
+            · payment={{ review.payment_term_days }}d
+          </small>
+          <small>
+            evidence={{ review.quality_evidence_status }}
+            · source transparency={{ review.source_transparency }}
+            · consent={{ review.consent_evidence }}
+            · buyer terms={{ review.buyer_terms_status }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.qualification_definition %}<small>Qualification: {{ review.qualification_definition }}</small>{% endif %}
+          {% if review.rate_card_evidence %}<small>Rate card: {{ review.rate_card_evidence }}</small>{% endif %}
+          {% if review.negotiation_evidence %}<small>Negotiation: {{ review.negotiation_evidence }}</small>{% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_lead_pricing_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 Lead 定价评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

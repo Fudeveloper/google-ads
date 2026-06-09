@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Offer Cap{% endblock %}
+{% block heading %}Offer Cap{% endblock %}
+{% block subheading %}把 cap、payout、Offer 状态、buyer capacity 和替代 Offer 审核转成投放前门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Cap / Payout 评审</h2>
+    <label>主 Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }} · {{ offer.status }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>替代 Offer
+      <select name="replacement_offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Cloud Backup daily cap check"></label>
+    <div class="split">
+      <label>Offer 状态
+        <select name="offer_status">
+          <option value="active">active</option>
+          <option value="approved_for_test">approved_for_test</option>
+          <option value="near_cap">near_cap</option>
+          <option value="capped">capped</option>
+          <option value="paused_by_network">paused_by_network</option>
+          <option value="expired">expired</option>
+          <option value="quality_hold">quality_hold</option>
+          <option value="pending_approval">pending_approval</option>
+          <option value="researching">researching</option>
+          <option value="retired">retired</option>
+        </select>
+      </label>
+      <label>Buyer capacity
+        <select name="buyer_capacity_status">
+          <option value="open">open</option>
+          <option value="limited">limited</option>
+          <option value="near_cap">near_cap</option>
+          <option value="paused">paused</option>
+          <option value="quality_hold">quality_hold</option>
+          <option value="unknown">unknown</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Cap 类型<input name="cap_type" value="daily_conversion"></label>
+      <label>Cap 周期<input name="cap_period" value="daily"></label>
+    </div>
+    <div class="split">
+      <label>Cap limit<input type="number" step="0.01" min="0" name="cap_limit" value="20"></label>
+      <label>Cap used<input type="number" step="0.01" min="0" name="cap_used" value="0"></label>
+    </div>
+    <div class="split">
+      <label>预计下一批转化<input type="number" step="0.01" min="0" name="expected_next_conversions" value="0"></label>
+      <label>证据距今天数<input type="number" min="0" name="days_since_cap_update" value="0"></label>
+    </div>
+    <div class="split">
+      <label>当前 payout<input type="number" step="0.0001" min="0" name="current_payout" value="0"></label>
+      <label>新 payout<input type="number" step="0.0001" min="0" name="new_payout" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approval rate %<input type="number" step="0.01" min="0" max="100" name="approval_rate_percent" value="0"></label>
+      <label>Paid rate %<input type="number" step="0.01" min="0" max="100" name="paid_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Deduction rate %<input type="number" step="0.01" min="0" max="100" name="deduction_rate_percent" value="0"></label>
+      <label>替代 Fit Score<input type="number" min="0" max="100" name="replacement_fit_score" value="0"></label>
+    </div>
+    <div class="split">
+      <label>替代状态
+        <select name="replacement_status">
+          <option value="not_needed">not_needed</option>
+          <option value="draft">draft</option>
+          <option value="needs_review">needs_review</option>
+          <option value="preapproved">preapproved</option>
+          <option value="rejected">rejected</option>
+        </select>
+      </label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>来源质量
+        <select name="source_quality">
+          <option value="watch">watch</option>
+          <option value="stable">stable</option>
+          <option value="unstable">unstable</option>
+        </select>
+      </label>
+      <label>Policy 风险
+        <select name="policy_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <label class="checkbox"><input type="checkbox" name="same_intent_review"> 替代 Offer 已完成同主题、同国家、同承诺审核</label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录 cap/payout/status 证据、预算联动、暂停原因或替代 Offer 审核结论。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 affiliate 后台快照、邮件、IO、cap/payout 文档、postback 或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Cap / Payout 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            status={{ review.offer_status }}
+            · buyer={{ review.buyer_capacity_status }}
+            · cap {{ "%.2f"|format(review.cap_used_float) }}/{{ "%.2f"|format(review.cap_limit_float) }}
+            · usage {{ "%.2f"|format(review.cap_usage_percent) }}%
+            · remaining {{ "%.2f"|format(review.cap_remaining) }}
+          </small>
+          <small>
+            payout {{ "%.4f"|format(review.current_payout_float) }}
+            -> {{ "%.4f"|format(review.new_payout_float) }}
+            · effective {{ "%.4f"|format(review.effective_payout_float) }}
+            · safe media cost {{ "%.2f"|format(review.safe_daily_media_cost_float) }}
+          </small>
+          <small>
+            approval={{ "%.2f"|format(review.approval_rate_percent) }}%
+            · paid={{ "%.2f"|format(review.paid_rate_percent) }}%
+            · deduction={{ "%.2f"|format(review.deduction_rate_percent) }}%
+            · evidence age={{ review.days_since_cap_update }}d
+          </small>
+          <small>
+            replacement={{ review.replacement_status }}
+            · fit={{ review.replacement_fit_score }}
+            · same intent={{ "yes" if review.same_intent_review else "no" }}
+            · source={{ review.source_quality }}
+            · policy={{ review.policy_risk }}
+          </small>
+          {% if review.offer or review.replacement_offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.replacement_offer %} · Replacement: {{ review.replacement_offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_offer_cap_payout_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有 Offer Cap / Payout 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

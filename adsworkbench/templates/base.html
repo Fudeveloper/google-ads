@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Ads Arbitrage Workbench{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('main.index') }}">Ads Workbench</a>
+    <nav>
+      <a href="{{ url_for('main.index') }}"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+      <a href="{{ url_for('main.accounts') }}"><i data-lucide="badge-check"></i>广告账号</a>
+      <a href="{{ url_for('main.offers') }}"><i data-lucide="package"></i>Offer</a>
+      <a href="{{ url_for('main.calculators') }}"><i data-lucide="calculator"></i>套利测算</a>
+      <a href="{{ url_for('main.campaigns') }}"><i data-lucide="megaphone"></i>投放草稿</a>
+      <a href="{{ url_for('main.bulk_upload') }}"><i data-lucide="file-spreadsheet"></i>批量变更</a>
+      <a href="{{ url_for('main.scripts_sync') }}"><i data-lucide="database-zap"></i>Scripts 同步</a>
+      <a href="{{ url_for('main.taxonomy_governance') }}"><i data-lucide="tags"></i>命名维度</a>
+      <a href="{{ url_for('main.ad_reviews') }}"><i data-lucide="file-warning"></i>广告审核</a>
+      <a href="{{ url_for('main.metrics_import') }}"><i data-lucide="upload"></i>指标导入</a>
+      <a href="{{ url_for('main.optimization') }}"><i data-lucide="trending-up"></i>优化建议</a>
+      <a href="{{ url_for('main.attribution') }}"><i data-lucide="git-compare-arrows"></i>归因增量</a>
+      <a href="{{ url_for('main.cpl_verticals') }}"><i data-lucide="clipboard-list"></i>CPL 垂类</a>
+      <a href="{{ url_for('main.lead_pricing') }}"><i data-lucide="hand-coins"></i>Lead 定价</a>
+      <a href="{{ url_for('main.appointment_leads') }}"><i data-lucide="calendar-check"></i>预约到场</a>
+      <a href="{{ url_for('main.buyer_capacity') }}"><i data-lucide="calendar-clock"></i>接量节奏</a>
+      <a href="{{ url_for('main.ping_post_routing') }}"><i data-lucide="route"></i>Ping/Post</a>
+      <a href="{{ url_for('main.conversion_signals') }}"><i data-lucide="activity"></i>信号出价</a>
+      <a href="{{ url_for('main.crm_value_mapping') }}"><i data-lucide="git-branch"></i>CRM 映射</a>
+      <a href="{{ url_for('main.query_mining') }}"><i data-lucide="search"></i>搜索词治理</a>
+      <a href="{{ url_for('main.decision_windows') }}"><i data-lucide="hourglass"></i>决策窗口</a>
+      <a href="{{ url_for('main.budget_pacing') }}"><i data-lucide="gauge"></i>预算节奏</a>
+      <a href="{{ url_for('main.portfolio_allocation') }}"><i data-lucide="chart-pie"></i>组合预算</a>
+      <a href="{{ url_for('main.offer_cap_payout') }}"><i data-lucide="traffic-cone"></i>Offer Cap</a>
+      <a href="{{ url_for('main.source_quality') }}"><i data-lucide="list-filter"></i>来源质量</a>
+      <a href="{{ url_for('main.vendor_contracts') }}"><i data-lucide="file-text"></i>合同争议</a>
+      <a href="{{ url_for('main.sources') }}"><i data-lucide="book-open-check"></i>来源库</a>
+      <a href="{{ url_for('main.risk_audits') }}"><i data-lucide="shield-check"></i>风险审计</a>
+      <a href="{{ url_for('main.tasks') }}"><i data-lucide="list-checks"></i>任务中心</a>
+      <a href="{{ url_for('main.links') }}"><i data-lucide="link"></i>链接计划</a>
+      <a href="{{ url_for('main.logs') }}"><i data-lucide="history"></i>审计日志</a>
+      <a href="{{ url_for('main.docs_index') }}"><i data-lucide="library"></i>文档入口</a>
+    </nav>
+    <div class="nav-section">
+      <a href="{{ url_for('main.knowledge', name='docs_index') }}">验收导航</a>
+      <a href="{{ url_for('main.knowledge', name='industry') }}">行业知识</a>
+      <a href="{{ url_for('main.knowledge', name='business_models') }}">模式拆解</a>
+      <a href="{{ url_for('main.knowledge', name='operations') }}">运营手册</a>
+      <a href="{{ url_for('main.knowledge', name='evidence_matrix') }}">证据矩阵</a>
+      <a href="{{ url_for('main.knowledge', name='search_feed_parking') }}">Search Feed</a>
+      <a href="{{ url_for('main.knowledge', name='rsoc_n2s') }}">RSOC/N2S</a>
+      <a href="{{ url_for('main.knowledge', name='keyword_intent') }}">关键词意图</a>
+      <a href="{{ url_for('main.knowledge', name='seasonality_forecasting') }}">季节预测</a>
+      <a href="{{ url_for('main.knowledge', name='search_terms_mining') }}">搜索词治理</a>
+      <a href="{{ url_for('main.knowledge', name='brand_trademark') }}">品牌商标</a>
+      <a href="{{ url_for('main.knowledge', name='competitor_intelligence') }}">竞品情报</a>
+      <a href="{{ url_for('main.knowledge', name='traffic_vendor') }}">渠道尽调</a>
+      <a href="{{ url_for('main.knowledge', name='inventory_controls') }}">库存版位</a>
+      <a href="{{ url_for('main.knowledge', name='source_quality_governance') }}">来源质量</a>
+      <a href="{{ url_for('main.knowledge', name='vendor_contracts') }}">合同争议</a>
+      <a href="{{ url_for('main.knowledge', name='audience_remarketing') }}">受众再营销</a>
+      <a href="{{ url_for('main.knowledge', name='affiliate_due_diligence') }}">联盟尽调</a>
+      <a href="{{ url_for('main.knowledge', name='lead_buyer_contracts') }}">Buyer 合同</a>
+      <a href="{{ url_for('main.knowledge', name='lead_quality') }}">Lead 质量</a>
+      <a href="{{ url_for('main.knowledge', name='lead_call_tracking') }}">电话 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='call_tracking_attribution') }}">电话归因</a>
+      <a href="{{ url_for('main.knowledge', name='pay_per_call_routing') }}">电话路由</a>
+      <a href="{{ url_for('main.knowledge', name='lead_consent_proof') }}">同意证据</a>
+      <a href="{{ url_for('main.knowledge', name='lead_form_funnel') }}">表单漏斗</a>
+      <a href="{{ url_for('main.knowledge', name='ping_post_leads') }}">Ping/Post</a>
+      <a href="{{ url_for('main.knowledge', name='lead_freshness') }}">Lead 时效</a>
+      <a href="{{ url_for('main.knowledge', name='lead_validation') }}">Lead 验证</a>
+      <a href="{{ url_for('main.knowledge', name='lead_contact_sla') }}">联系 SLA</a>
+      <a href="{{ url_for('main.knowledge', name='experiment_design') }}">实验决策</a>
+      <a href="{{ url_for('main.knowledge', name='invalid_traffic_sop') }}">无效流量</a>
+      <a href="{{ url_for('main.knowledge', name='anomaly_alerting') }}">异常告警</a>
+      <a href="{{ url_for('main.knowledge', name='content_quality') }}">内容质量</a>
+      <a href="{{ url_for('main.knowledge', name='sensitive_verticals') }}">敏感垂类</a>
+      <a href="{{ url_for('main.knowledge', name='metrics') }}">指标字典</a>
+      <a href="{{ url_for('main.knowledge', name='unit_economics') }}">单位经济</a>
+      <a href="{{ url_for('main.knowledge', name='verticals') }}">Offer 评估</a>
+      <a href="{{ url_for('main.knowledge', name='cpl_vertical_economics') }}">CPL 垂类</a>
+      <a href="{{ url_for('main.knowledge', name='insurance_leads') }}">保险 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='loan_debt_leads') }}">贷款债务</a>
+      <a href="{{ url_for('main.knowledge', name='legal_leads') }}">法律 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='home_services_leads') }}">本地服务</a>
+      <a href="{{ url_for('main.knowledge', name='education_leads') }}">教育 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='healthcare_leads') }}">医疗 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='b2b_saas_leads') }}">B2B Lead</a>
+      <a href="{{ url_for('main.knowledge', name='crypto_investment_leads') }}">Crypto 投资</a>
+      <a href="{{ url_for('main.knowledge', name='employment_leads') }}">招聘 Lead</a>
+      <a href="{{ url_for('main.knowledge', name='gambling_leads') }}">博彩抽奖</a>
+      <a href="{{ url_for('main.knowledge', name='addiction_treatment_leads') }}">成瘾治疗</a>
+      <a href="{{ url_for('main.knowledge', name='government_services_leads') }}">政府服务</a>
+      <a href="{{ url_for('main.knowledge', name='lead_pricing') }}">Lead 定价</a>
+      <a href="{{ url_for('main.knowledge', name='appointment_leads') }}">预约到场</a>
+      <a href="{{ url_for('main.knowledge', name='offer_cap_payout') }}">Offer Cap</a>
+      <a href="{{ url_for('main.knowledge', name='buyer_capacity') }}">接量节奏</a>
+      <a href="{{ url_for('main.knowledge', name='traffic_tracking') }}">流量追踪</a>
+      <a href="{{ url_for('main.knowledge', name='native_presell') }}">Native 软文</a>
+      <a href="{{ url_for('main.knowledge', name='click_session_revenue') }}">点击对账</a>
+      <a href="{{ url_for('main.knowledge', name='tracking_chain') }}">追踪链 QA</a>
+      <a href="{{ url_for('main.knowledge', name='taxonomy_governance') }}">命名维度</a>
+      <a href="{{ url_for('main.knowledge', name='attribution_incrementality') }}">增量归因</a>
+      <a href="{{ url_for('main.knowledge', name='conversion_tracking') }}">转化回传</a>
+      <a href="{{ url_for('main.knowledge', name='conversion_signal_quality') }}">信号出价</a>
+      <a href="{{ url_for('main.knowledge', name='crm_value_mapping') }}">CRM 映射</a>
+      <a href="{{ url_for('main.knowledge', name='decision_windows') }}">决策窗口</a>
+      <a href="{{ url_for('main.knowledge', name='landing_quality') }}">落地页质量</a>
+      <a href="{{ url_for('main.knowledge', name='domain_assets') }}">域名资产</a>
+      <a href="{{ url_for('main.knowledge', name='landing_intelligence') }}">素材抽取</a>
+      <a href="{{ url_for('main.knowledge', name='cashflow') }}">回款现金流</a>
+      <a href="{{ url_for('main.knowledge', name='subscription_ltv') }}">订阅 LTV</a>
+      <a href="{{ url_for('main.knowledge', name='revenue_reconciliation') }}">收入对账</a>
+      <a href="{{ url_for('main.knowledge', name='creative_testing') }}">创意优化</a>
+      <a href="{{ url_for('main.knowledge', name='creative_angle_library') }}">角度反馈</a>
+      <a href="{{ url_for('main.knowledge', name='creative_claim_review') }}">Claim 审核</a>
+      <a href="{{ url_for('main.knowledge', name='ad_review_appeal') }}">广告拒登</a>
+      <a href="{{ url_for('main.knowledge', name='ai_prompt_governance') }}">AI Prompt</a>
+      <a href="{{ url_for('main.knowledge', name='link_rotation') }}">换链接</a>
+      <a href="{{ url_for('main.knowledge', name='campaign_launch') }}">投放结构</a>
+      <a href="{{ url_for('main.knowledge', name='editor_csv_bulk') }}">Editor CSV</a>
+      <a href="{{ url_for('main.knowledge', name='scripts_automation') }}">Scripts 自动化</a>
+      <a href="{{ url_for('main.knowledge', name='scripts_data_sync') }}">Scripts 同步</a>
+      <a href="{{ url_for('main.knowledge', name='task_orchestration') }}">任务治理</a>
+      <a href="{{ url_for('main.knowledge', name='recommendations_experiments') }}">建议实验</a>
+      <a href="{{ url_for('main.knowledge', name='auction_bidding') }}">竞价出价</a>
+      <a href="{{ url_for('main.knowledge', name='ads_reporting') }}">报表诊断</a>
+      <a href="{{ url_for('main.knowledge', name='search_automation') }}">Search 自动化</a>
+      <a href="{{ url_for('main.knowledge', name='pmax_demand_gen') }}">PMax/Demand Gen</a>
+      <a href="{{ url_for('main.knowledge', name='geo_localization') }}">Geo 本地化</a>
+      <a href="{{ url_for('main.knowledge', name='budget_pacing') }}">预算节奏</a>
+      <a href="{{ url_for('main.knowledge', name='portfolio_allocation') }}">组合预算</a>
+      <a href="{{ url_for('main.knowledge', name='account_governance') }}">账号治理</a>
+      <a href="{{ url_for('main.knowledge', name='account_health') }}">账号健康</a>
+      <a href="{{ url_for('main.knowledge', name='adsense_site_approval') }}">站点审核</a>
+      <a href="{{ url_for('main.knowledge', name='publisher_stack') }}">发布商变现</a>
+      <a href="{{ url_for('main.knowledge', name='ad_quality') }}">广告质量</a>
+      <a href="{{ url_for('main.knowledge', name='programmatic_supply_chain') }}">供应链透明</a>
+      <a href="{{ url_for('main.knowledge', name='gam_yield') }}">GAM Yield</a>
+      <a href="{{ url_for('main.knowledge', name='header_bidding') }}">Header Bidding</a>
+      <a href="{{ url_for('main.knowledge', name='ad_placement') }}">广告位体验</a>
+      <a href="{{ url_for('main.knowledge', name='privacy_consent') }}">隐私 Consent</a>
+      <a href="{{ url_for('main.knowledge', name='playbook') }}">实战 Playbook</a>
+      <a href="{{ url_for('main.knowledge', name='adxkit') }}">ADXKit 拆解</a>
+      <a href="{{ url_for('main.knowledge', name='redlines') }}">高风险研究</a>
+      <a href="{{ url_for('main.knowledge', name='risk_matrix') }}">风险矩阵</a>
+      <a href="{{ url_for('main.knowledge', name='risk_completion') }}">高风险验收</a>
+      <a href="{{ url_for('main.knowledge', name='source_library') }}">来源索引</a>
+      <a href="{{ url_for('main.knowledge', name='traceability') }}">需求追溯</a>
+      <a href="{{ url_for('main.knowledge', name='risk_index') }}">高风险专题</a>
+      <a href="{{ url_for('main.knowledge', name='acceptance') }}">验收清单</a>
+      <a href="{{ url_for('main.knowledge', name='design') }}">系统设计</a>
+      <a href="{{ url_for('main.knowledge', name='usage') }}">使用文档</a>
+      <a href="{{ url_for('main.knowledge', name='development') }}">开发文档</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1>{% block heading %}Ads Arbitrage Workbench{% endblock %}</h1>
+        <p>{% block subheading %}单团队 Google Ads 套利流程、指标和审计工作台{% endblock %}</p>
+      </div>
+      <span class="status-pill">No Cookie Automation</span>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

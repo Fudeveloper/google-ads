@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}链接计划{% endblock %}
+{% block heading %}链接计划{% endblock %}
+{% block subheading %}用于断链修复、UTM 更新和已审核 URL 的 A/B 测试{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增链接计划</h2>
+    <label>Offer
+      <select name="offer_id" required>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>名称<input name="name" required placeholder="Primary URL A/B"></label>
+    <label>当前 URL<input name="current_url" required></label>
+    <label>候选 URL<textarea name="candidate_urls" rows="5" placeholder="每行一个已审核、同主题 URL"></textarea></label>
+    <label>原因<input name="rotation_reason" required placeholder="断链修复 / UTM 更新 / A/B Test"></label>
+    <label>频率分钟<input name="frequency_minutes" value="1440"></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>创建</button>
+  </form>
+
+  <div class="panel">
+    <h2>计划列表</h2>
+    <div class="list">
+      {% for rule in link_rules %}
+        <div class="list-row">
+          <strong>{{ rule.name }}</strong>
+          <span>{{ rule.offer.name }} · {{ rule.rotation_reason }} · {{ link_statuses.get(rule.status, rule.status) }}</span>
+          <small>{{ rule.candidate_urls|length }} candidates · manual review required</small>
+          <div class="inline-actions">
+            {% for value, label in link_statuses.items() %}
+              {% if value != rule.status %}
+                <form method="post" action="{{ url_for('main.update_link_status', rule_id=rule.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <form method="post" action="{{ url_for('main.rotate_link', rule_id=rule.id) }}">
+            <button class="button small secondary" type="submit"><i data-lucide="rotate-cw"></i>人工确认轮换</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">还没有链接计划。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}广告审核案例{% endblock %}
+{% block heading %}广告审核案例{% endblock %}
+{% block subheading %}把拒登、Policy Manager issue 和申诉证据包转成可复盘工单{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增审核案例</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>创意组
+      <select name="creative_set_id">
+        <option value="">不绑定</option>
+        {% for creative in creatives %}<option value="{{ creative.id }}">{{ creative.angle }} · #{{ creative.id }}</option>{% endfor %}
+      </select>
+    </label>
+    <div class="split">
+      <label>对象类型
+        <select name="object_type">
+          <option>ad</option>
+          <option>asset</option>
+          <option>keyword</option>
+          <option>final_url</option>
+          <option>tracking_template</option>
+          <option>landing_page</option>
+          <option>account_context</option>
+        </select>
+      </label>
+      <label>对象 ID / 描述<input name="object_ref" placeholder="例如 RSA draft、asset id、keyword text"></label>
+    </div>
+    <label>Policy topic<input name="policy_topic" required placeholder="例如 Misrepresentation、Destination requirements"></label>
+    <div class="split">
+      <label>级别
+        <select name="severity">
+          <option>high</option>
+          <option>medium</option>
+          <option>info</option>
+        </select>
+      </label>
+      <label>状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>Final URL<input name="final_url" placeholder="https://..."></label>
+    <label>Expanded URL<input name="expanded_url" placeholder="带 tracking template 和参数后的 URL"></label>
+    <label>发现<textarea name="finding" rows="4" required placeholder="记录拒登现象、policy topic、受影响对象和判断依据。"></textarea></label>
+    <label>修复摘要<textarea name="change_summary" rows="4" required placeholder="记录文案、页面、链接、披露、claim evidence 或 QA 的真实修复。"></textarea></label>
+    <label>证据 URL<textarea name="evidence_urls" rows="4" placeholder="每行一个 Policy Manager、页面、截图、来源或 QA 证据 URL"></textarea></label>
+    <label>申诉文字<textarea name="appeal_text" rows="4" placeholder="只记录修复后的申诉说明；不要写绕审核或换号方案。"></textarea></label>
+    <label>Reviewer<input name="reviewer" placeholder="审核人"></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存案例</button>
+  </form>
+
+  <div class="panel">
+    <h2>案例列表</h2>
+    <div class="list">
+      {% for case in cases %}
+        <div class="list-row">
+          <strong>{{ case.policy_topic }}</strong>
+          <span>
+            <span class="badge {{ case.severity }}">{{ case.severity }}</span>
+            {{ status_options.get(case.status, case.status) }}
+            · {{ case.object_type }}
+            {% if case.object_ref %} · {{ case.object_ref }}{% endif %}
+          </span>
+          <p>{{ case.finding }}</p>
+          <small>{{ case.change_summary }}</small>
+          {% if case.final_url %}<small>Final URL: {{ case.final_url }}</small>{% endif %}
+          {% if case.expanded_url %}<small>Expanded URL: {{ case.expanded_url }}</small>{% endif %}
+          {% if case.evidence_urls %}
+            <small>Evidence: {{ case.evidence_urls|join(" | ") }}</small>
+          {% endif %}
+          {% if case.appeal_text %}<small>Appeal: {{ case.appeal_text }}</small>{% endif %}
+          {% if case.reviewer %}<small>Reviewer: {{ case.reviewer }}</small>{% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != case.status %}
+                <form method="post" action="{{ url_for('main.update_ad_review_status', case_id=case.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有广告审核案例。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

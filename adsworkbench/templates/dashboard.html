@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+{% block subheading %}从利润、动作和日志看当前套利业务状态{% endblock %}
+{% block content %}
+<section class="metric-grid">
+  <div class="metric-card"><span>Offer</span><strong>{{ offer_count }}</strong></div>
+  <div class="metric-card"><span>投放草稿</span><strong>{{ campaign_count }}</strong></div>
+  <div class="metric-card"><span>机会测算</span><strong>{{ assessment_count }}</strong></div>
+  <div class="metric-card"><span>来源</span><strong>{{ source_count }}</strong></div>
+  <div class="metric-card"><span>风险审计</span><strong>{{ risk_audit_count }}</strong></div>
+  <div class="metric-card"><span>任务</span><strong>{{ task_count }}</strong></div>
+  <div class="metric-card"><span>花费</span><strong>${{ "%.2f"|format(totals.cost) }}</strong></div>
+  <div class="metric-card"><span>收入</span><strong>${{ "%.2f"|format(totals.revenue) }}</strong></div>
+  <div class="metric-card"><span>利润</span><strong class="{{ 'good' if totals.profit >= 0 else 'bad' }}">${{ "%.2f"|format(totals.profit) }}</strong></div>
+  <div class="metric-card"><span>ROI</span><strong class="{{ 'good' if totals.roi >= 0 else 'bad' }}">{{ "%.1f%%"|format(totals.roi * 100) }}</strong></div>
+</section>
+
+<section class="grid two">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>核心指标</h2>
+      <a class="button small" href="{{ url_for('main.metrics_import') }}"><i data-lucide="upload"></i>导入</a>
+    </div>
+    <table>
+      <tr><th>Clicks</th><td>{{ totals.clicks }}</td></tr>
+      <tr><th>CPC</th><td>${{ "%.4f"|format(totals.cpc) }}</td></tr>
+      <tr><th>RPV</th><td>${{ "%.4f"|format(totals.rpv) }}</td></tr>
+      <tr><th>CTR</th><td>{{ "%.2f%%"|format(totals.ctr * 100) }}</td></tr>
+      <tr><th>CVR</th><td>{{ "%.2f%%"|format(totals.cvr * 100) }}</td></tr>
+      <tr><th>Open Actions</th><td>{{ open_actions }}</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>最近审计</h2>
+      <a class="button small secondary" href="{{ url_for('main.logs') }}"><i data-lucide="history"></i>全部</a>
+    </div>
+    <div class="timeline">
+      {% for log in recent_logs %}
+        <div class="timeline-item">
+          <b>{{ log.action }}</b>
+          <span>{{ log.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+          <p>{{ log.message }}</p>
+        </div>
+      {% else %}
+        <p class="muted">暂无日志。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

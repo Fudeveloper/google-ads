@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}{{ offer.name }}{% endblock %}
+{% block heading %}{{ offer.name }}{% endblock %}
+{% block subheading %}{{ offer.vertical }} · {{ offer.country }} · {{ offer.payout_model }}{% endblock %}
+{% block content %}
+<section class="metric-grid">
+  <div class="metric-card"><span>Payout/RPM</span><strong>${{ "%.2f"|format(offer.payout_float) }}</strong></div>
+  <div class="metric-card"><span>花费</span><strong>${{ "%.2f"|format(totals.cost) }}</strong></div>
+  <div class="metric-card"><span>收入</span><strong>${{ "%.2f"|format(totals.revenue) }}</strong></div>
+  <div class="metric-card"><span>ROI</span><strong class="{{ 'good' if totals.roi >= 0 else 'bad' }}">{{ "%.1f%%"|format(totals.roi * 100) }}</strong></div>
+</section>
+
+<section class="grid two">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>落地页审计</h2>
+      <form method="post" action="{{ url_for('main.crawl_offer', offer_id=offer.id) }}">
+        <button class="button small" type="submit"><i data-lucide="scan-search"></i>采集</button>
+      </form>
+    </div>
+    {% if offer.latest_landing_page %}
+      {% set page = offer.latest_landing_page %}
+      <div class="score">{{ page.quality_score }}</div>
+      <table>
+        <tr><th>Status</th><td>{{ page.http_status or "failed" }}</td></tr>
+        <tr><th>Title</th><td>{{ page.title }}</td></tr>
+        <tr><th>Words</th><td>{{ page.word_count }}</td></tr>
+        <tr><th>Links</th><td>{{ page.internal_links }} internal / {{ page.external_links }} external</td></tr>
+      </table>
+      <pre class="compact">{{ page.raw_summary }}</pre>
+    {% else %}
+      <p class="muted">尚未采集。</p>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>创意组</h2>
+      <form method="post" action="{{ url_for('main.generate_creatives', offer_id=offer.id) }}">
+        <button class="button small" type="submit"><i data-lucide="wand-sparkles"></i>生成</button>
+      </form>
+    </div>
+    {% for creative in offer.creatives %}
+      <details class="detail-row">
+        <summary>{{ creative.angle }} · {{ creative.headlines|length }} 标题 · {{ creative.keywords|length }} 关键词</summary>
+        <p><b>Headlines</b>: {{ creative.headlines|join(" / ") }}</p>
+        <p><b>Descriptions</b>: {{ creative.descriptions|join(" / ") }}</p>
+        <p><b>Keywords</b>: {{ creative.keywords[:12]|join(", ") }}</p>
+        <form method="post" action="{{ url_for('main.run_creative_claim_reviews', creative_id=creative.id) }}">
+          <button class="button small secondary" type="submit"><i data-lucide="shield-check"></i>刷新 Claim 审核</button>
+        </form>
+        {% set claim_reviews = creative_claim_reviews.get(creative.id, []) %}
+        {% if claim_reviews %}
+          <table>
+            <thead>
+              <tr><th>Claim 审核</th><th>资产</th><th>文本</th><th>处理</th><th>状态</th></tr>
+            </thead>
+            <tbody>
+              {% for review in claim_reviews %}
+                <tr>
+                  <td><span class="badge {{ review.severity }}">{{ review.issue }}</span></td>
+                  <td>{{ review.asset_type }}</td>
+                  <td>{{ review.asset_text }}</td>
+                  <td>
+                    {{ review.action }}<br>
+                    <small>Evidence: {{ review.evidence or "missing" }}</small>
+                    {% if review.source_url %}<br><a href="{{ review.source_url }}" target="_blank" rel="noopener">{{ review.source_url }}</a>{% endif %}
+                  </td>
+                  <td>
+                    <strong>{{ claim_review_statuses.get(review.review_status, review.review_status) }}</strong>
+                    <div class="inline-actions">
+                      {% for value, label in claim_review_statuses.items() %}
+                        {% if value != review.review_status %}
+                          <form method="post" action="{{ url_for('main.update_claim_review_status', review_id=review.id) }}">
+                            <input type="hidden" name="review_status" value="{{ value }}">
+                            <button class="button small secondary" type="submit">{{ label }}</button>
+                          </form>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="muted">尚未生成持久化 Claim 审核记录，刷新后再进入人工状态流。</p>
+        {% endif %}
+      </details>
+    {% else %}
+      <p class="muted">尚未生成创意。</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="panel">
+  <h2>基础信息</h2>
+  <table>
+    <tr><th>目标 URL</th><td><a href="{{ offer.target_url }}" target="_blank" rel="noreferrer">{{ offer.target_url }}</a></td></tr>
+    <tr><th>Tracking URL</th><td>{{ offer.tracking_url or "-" }}</td></tr>
+    <tr><th>政策备注</th><td>{{ offer.policy_notes or "-" }}</td></tr>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}组合预算{% endblock %}
+{% block heading %}组合预算{% endblock %}
+{% block subheading %}把预算池、收入状态、集中度、现金缓冲和事故状态转成 Portfolio 分配评审{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增组合评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }} · ${{ "%.2f"|format(campaign.budget_float) }}/day</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US Search portfolio Scale bucket review"></label>
+    <label>预算池
+      <select name="portfolio_bucket">
+        <option value="test">test</option>
+        <option value="scale">scale</option>
+        <option value="core">core</option>
+        <option value="explore">explore</option>
+        <option value="quarantine">quarantine</option>
+      </select>
+    </label>
+    <div class="split">
+      <label>月度媒体预算<input type="number" step="0.01" min="0" name="monthly_media_budget" value="3000"></label>
+      <label>建议分配金额<input type="number" step="0.01" min="0" name="proposed_allocation" value="300"></label>
+    </div>
+    <div class="split">
+      <label>本月已花费<input type="number" step="0.01" min="0" name="spend_to_date" value="0"></label>
+      <label>现金缓冲天数<input type="number" min="0" name="cash_reserve_days" value="30"></label>
+    </div>
+    <div class="split">
+      <label>Reported revenue<input type="number" step="0.01" min="0" name="reported_revenue" value="0"></label>
+      <label>Pending revenue<input type="number" step="0.01" min="0" name="pending_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Approved revenue<input type="number" step="0.01" min="0" name="approved_revenue" value="0"></label>
+      <label>Finalized revenue<input type="number" step="0.01" min="0" name="finalized_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Paid revenue<input type="number" step="0.01" min="0" name="paid_revenue" value="0"></label>
+      <label>Deducted revenue<input type="number" step="0.01" min="0" name="deducted_revenue" value="0"></label>
+    </div>
+    <div class="split">
+      <label>单一 Offer 占比 %<input type="number" step="0.01" min="0" name="single_offer_exposure_percent" value="0"></label>
+      <label>单一 Source 占比 %<input type="number" step="0.01" min="0" name="single_source_exposure_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>单一账号占比 %<input type="number" step="0.01" min="0" name="single_account_exposure_percent" value="0"></label>
+      <label>单一结算方占比 %<input type="number" step="0.01" min="0" name="single_partner_exposure_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>来源质量
+        <select name="source_quality">
+          <option value="watch">watch</option>
+          <option value="stable">stable</option>
+          <option value="unstable">unstable</option>
+        </select>
+      </label>
+      <label>Policy 风险
+        <select name="policy_risk">
+          <option value="medium">medium</option>
+          <option value="low">low</option>
+          <option value="high">high</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>事故状态
+        <select name="incident_state">
+          <option value="clean">clean</option>
+          <option value="recent">recent</option>
+          <option value="active">active</option>
+        </select>
+      </label>
+      <label>处理状态
+        <select name="status">
+          {% for value, label in status_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录为什么进入 Core/Scale/Test/Explore/Quarantine，或为什么降低集中度。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 Budget report、AdSense payment、buyer statement、风险审计或内部证据 URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>组合评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.portfolio_bucket }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            allocation {{ "%.2f"|format(review.proposed_allocation_float) }}
+            / {{ "%.2f"|format(review.monthly_media_budget_float) }}
+            · share {{ "%.2f"|format(review.allocation_percent) }}%
+            · remaining {{ "%.2f"|format(review.remaining_monthly_budget) }}
+            · cash at risk {{ "%.2f"|format(review.cash_at_risk) }}
+          </small>
+          <small>
+            reported={{ "%.2f"|format(review.reported_revenue_float) }}
+            · pending={{ "%.2f"|format(review.pending_revenue_float) }}
+            · approved={{ "%.2f"|format(review.approved_revenue_float) }}
+            · finalized={{ "%.2f"|format(review.finalized_revenue_float) }}
+            · paid={{ "%.2f"|format(review.paid_revenue_float) }}
+            · deducted={{ "%.2f"|format(review.deducted_revenue_float) }}
+            · mature ratio={{ "%.2f"|format(review.revenue_quality_ratio) }}%
+          </small>
+          <small>
+            offer={{ "%.2f"|format(review.single_offer_exposure_percent) }}%
+            · source={{ "%.2f"|format(review.single_source_exposure_percent) }}%
+            · account={{ "%.2f"|format(review.single_account_exposure_percent) }}%
+            · partner={{ "%.2f"|format(review.single_partner_exposure_percent) }}%
+            · cash={{ review.cash_reserve_days }}d
+          </small>
+          <small>
+            source={{ review.source_quality }}
+            · policy={{ review.policy_risk }}
+            · incident={{ review.incident_state }}
+          </small>
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <small>Blockers: {{ review.blockers|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}<p>{{ review.notes }}</p>{% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          <div class="inline-actions">
+            {% for value, label in status_options.items() %}
+              {% if value != review.status %}
+                <form method="post" action="{{ url_for('main.update_portfolio_allocation_status', review_id=review.id) }}">
+                  <input type="hidden" name="status" value="{{ value }}">
+                  <button class="button small secondary" type="submit">{{ label }}</button>
+                </form>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <p class="muted">还没有组合预算评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
