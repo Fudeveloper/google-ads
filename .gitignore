@@ -6,3 +6,4 @@ instance/
 .pytest_cache/
 .mypy_cache/
 ./idea/*
+.idea
