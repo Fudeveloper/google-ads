@@ -26,6 +26,7 @@ from adsworkbench.models import (
     CreativeSet,
     CplVerticalReview,
     DecisionWindowReview,
+    LeadValidationReview,
     LeadPricingReview,
     LinkRule,
     MetricDaily,
@@ -71,6 +72,7 @@ REQUIRED_ROUTES = [
     "/lead-pricing",
     "/appointment-leads",
     "/buyer-capacity",
+    "/lead-validation",
     "/ping-post-routing",
     "/conversion-signals",
     "/crm-value-mapping",
@@ -260,6 +262,7 @@ def _check_seeded_core_data(failures: list[str], evidence: list[str]) -> None:
         "lead_pricing_reviews": LeadPricingReview.query.count(),
         "appointment_lead_reviews": AppointmentLeadReview.query.count(),
         "buyer_capacity_reviews": BuyerCapacityReview.query.count(),
+        "lead_validation_reviews": LeadValidationReview.query.count(),
         "ping_post_routing_reviews": PingPostRoutingReview.query.count(),
         "conversion_signal_reviews": ConversionSignalReview.query.count(),
         "crm_value_mapping_reviews": CrmValueMappingReview.query.count(),
@@ -2091,6 +2094,150 @@ def _check_routes_and_guardrails(app, failures: list[str], evidence: list[str]) 
         ).first():
             failures.append("CRM value mapping status update did not write audit log")
 
+    unsafe_lead_validation_count = LeadValidationReview.query.count()
+    client.post(
+        "/lead-validation",
+        data={
+            "offer_id": str(campaign.offer_id),
+            "campaign_draft_id": str(campaign.id),
+            "name": "Acceptance unsafe lead validation",
+            "vertical": "insurance",
+            "geo": "US",
+            "source_type": "google_search",
+            "form_version": "form_v1",
+            "validation_scope": "pre_routing",
+            "lead_channel": "web_form",
+            "consent_status": "buyer_scope_reviewed",
+            "buyer_disclosure_status": "contract_reviewed",
+            "phone_status": "normalized",
+            "email_status": "normalized",
+            "address_geo_status": "buyer_service_area",
+            "duplicate_status": "source_buyer_windowed",
+            "suppression_status": "ready",
+            "dnc_status": "checked",
+            "opt_out_status": "checked",
+            "pii_minimization_status": "hashed_minimized",
+            "retention_status": "deletion_ready",
+            "source_policy_status": "buyer_approved",
+            "buyer_reject_feedback_status": "paid_feedback_ready",
+            "validation_sample_size": "100",
+            "valid_rate_percent": "85",
+            "invalid_contact_rate_percent": "3",
+            "duplicate_rate_percent": "1",
+            "suppression_hit_rate_percent": "0.5",
+            "dnc_hit_rate_percent": "0.2",
+            "opt_out_rate_percent": "0.2",
+            "bad_geo_rate_percent": "1",
+            "no_consent_rate_percent": "0.5",
+            "buyer_reject_rate_percent": "5",
+            "complaint_rate_percent": "0.1",
+            "fields_collected_schema": "Hash-only validation schema.",
+            "validation_rule_summary": "Reviewed safe validation rules.",
+            "duplicate_rule_summary": "Reviewed duplicate windows.",
+            "suppression_rule_summary": "Reviewed suppression rules.",
+            "pii_handling_notes": "Unsafe request wants fake lead auto submit with cookie session token.",
+            "retention_deletion_notes": "Retention reviewed.",
+            "buyer_reject_reason_map": "invalid_contact, duplicate, bad_geo",
+            "source_form_fix_plan": "Reviewed source fix plan.",
+            "consent_evidence": "on",
+            "buyer_disclosure_reviewed": "on",
+            "field_minimization_reviewed": "on",
+            "duplicate_rule_reviewed": "on",
+            "suppression_dnc_checked": "on",
+            "pii_access_reviewed": "on",
+            "retention_policy_reviewed": "on",
+            "reject_reason_mapped": "on",
+            "source_policy_reviewed": "on",
+            "human_review": "on",
+            "status": "open",
+            "notes": "Unsafe acceptance case should not be persisted.",
+            "source_urls": "https://www.ftc.gov/business-guidance/resources/protecting-personal-information-guide-business",
+        },
+        follow_redirects=True,
+    )
+    if LeadValidationReview.query.count() != unsafe_lead_validation_count:
+        failures.append("Unsafe Lead validation fake lead or cookie automation plan was accepted")
+
+    lead_validation_response = client.post(
+        "/lead-validation",
+        data={
+            "offer_id": str(campaign.offer_id),
+            "campaign_draft_id": str(campaign.id),
+            "name": "Acceptance weak lead validation gate",
+            "vertical": "insurance",
+            "geo": "US",
+            "source_type": "google_search",
+            "form_version": "form_v1",
+            "validation_scope": "pre_routing",
+            "lead_channel": "web_form",
+            "consent_status": "missing",
+            "buyer_disclosure_status": "generic",
+            "phone_status": "invalid",
+            "email_status": "unknown",
+            "address_geo_status": "bad_geo",
+            "duplicate_status": "missing",
+            "suppression_status": "missing",
+            "dnc_status": "missing",
+            "opt_out_status": "missing",
+            "pii_minimization_status": "raw_pii_in_url",
+            "retention_status": "missing",
+            "source_policy_status": "unknown",
+            "buyer_reject_feedback_status": "missing",
+            "validation_sample_size": "25",
+            "valid_rate_percent": "30",
+            "invalid_contact_rate_percent": "25",
+            "duplicate_rate_percent": "14",
+            "suppression_hit_rate_percent": "6",
+            "dnc_hit_rate_percent": "3",
+            "opt_out_rate_percent": "4",
+            "bad_geo_rate_percent": "18",
+            "no_consent_rate_percent": "8",
+            "buyer_reject_rate_percent": "35",
+            "complaint_rate_percent": "2.5",
+            "fields_collected_schema": "Draft schema has unsafe URL PII risk.",
+            "validation_rule_summary": "Validation rules are incomplete.",
+            "duplicate_rule_summary": "",
+            "suppression_rule_summary": "",
+            "pii_handling_notes": "PII handling is not minimized.",
+            "retention_deletion_notes": "",
+            "buyer_reject_reason_map": "",
+            "source_form_fix_plan": "",
+            "incident_notes": "Complaint spike under manual review.",
+            "status": "open",
+            "notes": "Acceptance validation should block until consent, PII and suppression are repaired.",
+            "source_urls": "https://csrc.nist.gov/pubs/sp/800/122/final",
+        },
+        follow_redirects=True,
+    )
+    lead_validation_review = LeadValidationReview.query.filter_by(
+        name="Acceptance weak lead validation gate"
+    ).first()
+    if lead_validation_response.status_code != 200 or not lead_validation_review:
+        failures.append("Lead validation review creation failed")
+    elif not lead_validation_review.blockers:
+        failures.append("Lead validation review did not record blockers")
+    elif lead_validation_review.recommended_action != "block_pii_or_consent":
+        failures.append("Lead validation review did not block unsafe consent or PII")
+    elif lead_validation_review.safe_routing_rate_percent_float != 0:
+        failures.append("Lead validation review did not set safe routing rate to zero")
+    else:
+        lead_validation_status_response = client.post(
+            f"/lead-validation/{lead_validation_review.id}/status",
+            data={"status": "pii_review"},
+            follow_redirects=True,
+        )
+        if (
+            lead_validation_status_response.status_code != 200
+            or lead_validation_review.status != "pii_review"
+        ):
+            failures.append("Lead validation status update failed")
+        if not AuditLog.query.filter_by(
+            entity_type="lead_validation_review",
+            entity_id=lead_validation_review.id,
+            action="status_update",
+        ).first():
+            failures.append("Lead validation status update did not write audit log")
+
     unsafe_ping_post_count = PingPostRoutingReview.query.count()
     client.post(
         "/ping-post-routing",
@@ -2446,7 +2593,7 @@ def _check_routes_and_guardrails(app, failures: list[str], evidence: list[str]) 
 
     evidence.append(f"Required routes checked: {len(REQUIRED_ROUTES)}")
     evidence.append(
-        "Safety guardrails checked: account, campaign status/preflight, bulk upload status, script sync status, taxonomy status, attribution status, CPL vertical status, Lead Pricing status, Appointment Lead status, Buyer Capacity status, Ping/Post Routing status, Conversion Signal status, CRM Value Mapping status, ad review status, query mining status, decision window status, budget pacing status, portfolio allocation status, offer cap status, source quality status, vendor contract status, source status, claim review status, risk audit status, link status/rotation, task notes, Scripts export, optimization status"
+        "Safety guardrails checked: account, campaign status/preflight, bulk upload status, script sync status, taxonomy status, attribution status, CPL vertical status, Lead Pricing status, Appointment Lead status, Buyer Capacity status, Lead Validation status, Ping/Post Routing status, Conversion Signal status, CRM Value Mapping status, ad review status, query mining status, decision window status, budget pacing status, portfolio allocation status, offer cap status, source quality status, vendor contract status, source status, claim review status, risk audit status, link status/rotation, task notes, Scripts export, optimization status"
     )
 
 

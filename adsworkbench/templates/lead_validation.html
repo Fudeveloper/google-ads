@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% block title %}Lead 验证{% endblock %}
+{% block heading %}Lead 验证{% endblock %}
+{% block subheading %}把 validation、suppression、DNC、opt-out、去重、PII 最小化和 buyer reject 闭环做成路由前门禁{% endblock %}
+{% block content %}
+<section class="grid two">
+  <form class="panel form" method="post">
+    <h2>新增 Lead Validation 评审</h2>
+    <label>Offer
+      <select name="offer_id">
+        <option value="">不绑定</option>
+        {% for offer in offers %}<option value="{{ offer.id }}">{{ offer.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>投放草稿
+      <select name="campaign_draft_id">
+        <option value="">不绑定</option>
+        {% for campaign in campaigns %}<option value="{{ campaign.id }}">{{ campaign.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>评审名称<input name="name" required placeholder="例如 US insurance pre-routing validation gate"></label>
+    <div class="split">
+      <label>垂类<input name="vertical" value="insurance"></label>
+      <label>Geo<input name="geo" placeholder="US / state / service area"></label>
+    </div>
+    <div class="split">
+      <label>Source type<input name="source_type" value="google_search"></label>
+      <label>Form version<input name="form_version" placeholder="form_v2026_06_consent_a"></label>
+    </div>
+    <div class="split">
+      <label>Validation scope
+        <select name="validation_scope">
+          <option value="pre_routing">pre_routing</option>
+          <option value="pre_conversion">pre_conversion</option>
+          <option value="buyer_feedback">buyer_feedback</option>
+          <option value="retention_audit">retention_audit</option>
+        </select>
+      </label>
+      <label>Lead channel
+        <select name="lead_channel">
+          <option value="web_form">web_form</option>
+          <option value="call">call</option>
+          <option value="lead_form_asset">lead_form_asset</option>
+          <option value="chat">chat</option>
+          <option value="crm_import">crm_import</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Consent
+        <select name="consent_status">
+          <option value="missing">missing</option>
+          <option value="unknown">unknown</option>
+          <option value="form_only">form_only</option>
+          <option value="valid">valid</option>
+          <option value="versioned">versioned</option>
+          <option value="buyer_scope_reviewed">buyer_scope_reviewed</option>
+          <option value="invalid">invalid</option>
+        </select>
+      </label>
+      <label>Buyer disclosure
+        <select name="buyer_disclosure_status">
+          <option value="missing">missing</option>
+          <option value="generic">generic</option>
+          <option value="category_disclosed">category_disclosed</option>
+          <option value="buyer_group">buyer_group</option>
+          <option value="named_buyers">named_buyers</option>
+          <option value="contract_reviewed">contract_reviewed</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Phone
+        <select name="phone_status">
+          <option value="unknown">unknown</option>
+          <option value="missing">missing</option>
+          <option value="format_only">format_only</option>
+          <option value="normalized">normalized</option>
+          <option value="reachable_reviewed">reachable_reviewed</option>
+          <option value="not_collected">not_collected</option>
+          <option value="invalid">invalid</option>
+        </select>
+      </label>
+      <label>Email
+        <select name="email_status">
+          <option value="unknown">unknown</option>
+          <option value="missing">missing</option>
+          <option value="format_only">format_only</option>
+          <option value="normalized">normalized</option>
+          <option value="reachable_reviewed">reachable_reviewed</option>
+          <option value="not_collected">not_collected</option>
+          <option value="invalid">invalid</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Address / geo
+        <select name="address_geo_status">
+          <option value="unknown">unknown</option>
+          <option value="partial">partial</option>
+          <option value="eligible">eligible</option>
+          <option value="buyer_service_area">buyer_service_area</option>
+          <option value="bad_geo">bad_geo</option>
+        </select>
+      </label>
+      <label>Duplicate
+        <select name="duplicate_status">
+          <option value="missing">missing</option>
+          <option value="window_missing">window_missing</option>
+          <option value="hash_only">hash_only</option>
+          <option value="source_buyer_windowed">source_buyer_windowed</option>
+          <option value="event_deduped">event_deduped</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Suppression
+        <select name="suppression_status">
+          <option value="missing">missing</option>
+          <option value="unknown">unknown</option>
+          <option value="partial">partial</option>
+          <option value="checked">checked</option>
+          <option value="ready">ready</option>
+          <option value="stale">stale</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+      <label>DNC
+        <select name="dnc_status">
+          <option value="missing">missing</option>
+          <option value="unknown">unknown</option>
+          <option value="partial">partial</option>
+          <option value="checked">checked</option>
+          <option value="ready">ready</option>
+          <option value="stale">stale</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Opt-out
+        <select name="opt_out_status">
+          <option value="missing">missing</option>
+          <option value="unknown">unknown</option>
+          <option value="partial">partial</option>
+          <option value="checked">checked</option>
+          <option value="ready">ready</option>
+          <option value="stale">stale</option>
+          <option value="blocked">blocked</option>
+        </select>
+      </label>
+      <label>PII minimization
+        <select name="pii_minimization_status">
+          <option value="unknown">unknown</option>
+          <option value="hashed_minimized">hashed_minimized</option>
+          <option value="post_only_selected_buyer">post_only_selected_buyer</option>
+          <option value="internal_only">internal_only</option>
+          <option value="not_collected">not_collected</option>
+          <option value="over_collected">over_collected</option>
+          <option value="raw_pii_in_url">raw_pii_in_url</option>
+        </select>
+      </label>
+    </div>
+    <div class="split">
+      <label>Retention
+        <select name="retention_status">
+          <option value="missing">missing</option>
+          <option value="draft">draft</option>
+          <option value="defined">defined</option>
+          <option value="deletion_ready">deletion_ready</option>
+          <option value="audited">audited</option>
+        </select>
+      </label>
+      <label>Source policy
+        <select name="source_policy_status">
+          <option value="unknown">unknown</option>
+          <option value="under_review">under_review</option>
+          <option value="approved">approved</option>
+          <option value="buyer_approved">buyer_approved</option>
+          <option value="disallowed">disallowed</option>
+        </select>
+      </label>
+    </div>
+    <label>Buyer reject feedback
+      <select name="buyer_reject_feedback_status">
+        <option value="missing">missing</option>
+        <option value="accepted_only">accepted_only</option>
+        <option value="reject_reason_mapped">reject_reason_mapped</option>
+        <option value="paid_feedback_ready">paid_feedback_ready</option>
+      </select>
+    </label>
+    <label>Validation sample size<input type="number" min="0" name="validation_sample_size" value="0"></label>
+    <div class="split">
+      <label>Valid %<input type="number" step="0.01" min="0" max="100" name="valid_rate_percent" value="0"></label>
+      <label>Invalid contact %<input type="number" step="0.01" min="0" max="100" name="invalid_contact_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Duplicate %<input type="number" step="0.01" min="0" max="100" name="duplicate_rate_percent" value="0"></label>
+      <label>Suppression hit %<input type="number" step="0.01" min="0" max="100" name="suppression_hit_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>DNC hit %<input type="number" step="0.01" min="0" max="100" name="dnc_hit_rate_percent" value="0"></label>
+      <label>Opt-out %<input type="number" step="0.01" min="0" max="100" name="opt_out_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Bad geo %<input type="number" step="0.01" min="0" max="100" name="bad_geo_rate_percent" value="0"></label>
+      <label>No consent %<input type="number" step="0.01" min="0" max="100" name="no_consent_rate_percent" value="0"></label>
+    </div>
+    <div class="split">
+      <label>Buyer reject %<input type="number" step="0.01" min="0" max="100" name="buyer_reject_rate_percent" value="0"></label>
+      <label>Complaint %<input type="number" step="0.01" min="0" max="100" name="complaint_rate_percent" value="0"></label>
+    </div>
+    <label>Fields collected schema<textarea name="fields_collected_schema" rows="3" placeholder="campaign/source IDs, consent version, qualification fields, phone/email hash; no raw PII in URL/subid/log"></textarea></label>
+    <label>Validation rule summary<textarea name="validation_rule_summary" rows="3" placeholder="schema -> consent -> format -> duplicate -> suppression/DNC/opt-out -> geo -> source policy -> buyer feedback"></textarea></label>
+    <label>Duplicate rule summary<textarea name="duplicate_rule_summary" rows="3" placeholder="same phone hash 30d, same buyer campaign 90d, transaction_id forever"></textarea></label>
+    <label>Suppression rule summary<textarea name="suppression_rule_summary" rows="3" placeholder="opt-out, DNC, revocation and suppression hash checked before routing"></textarea></label>
+    <label>PII handling notes<textarea name="pii_handling_notes" rows="3" placeholder="hash for duplicate checks; raw contact fields only available to approved handoff roles"></textarea></label>
+    <label>Retention / deletion notes<textarea name="retention_deletion_notes" rows="3" placeholder="raw lead retention window, consent evidence window, deletion request workflow and export expiry"></textarea></label>
+    <label>Buyer reject reason map<textarea name="buyer_reject_reason_map" rows="3" placeholder="invalid_contact, duplicate, bad_geo, no_consent, cap_reached, low_intent, prohibited_source"></textarea></label>
+    <label>Source / form fix plan<textarea name="source_form_fix_plan" rows="3" placeholder="fix field labels, buyer disclosure, geo targeting, validation copy or source quarantine"></textarea></label>
+    <label>Incident notes<textarea name="incident_notes" rows="3" placeholder="complaint spike, suppression miss, DNC hit, deletion request backlog or reject spike"></textarea></label>
+    <div class="check-grid">
+      <label class="checkbox"><input type="checkbox" name="consent_evidence"> Consent 证据</label>
+      <label class="checkbox"><input type="checkbox" name="buyer_disclosure_reviewed"> Buyer disclosure 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="field_minimization_reviewed"> 字段最小化已复核</label>
+      <label class="checkbox"><input type="checkbox" name="duplicate_rule_reviewed"> 去重规则已复核</label>
+      <label class="checkbox"><input type="checkbox" name="suppression_dnc_checked"> Suppression / DNC / opt-out 已检查</label>
+      <label class="checkbox"><input type="checkbox" name="pii_access_reviewed"> PII 访问已复核</label>
+      <label class="checkbox"><input type="checkbox" name="retention_policy_reviewed"> Retention policy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="reject_reason_mapped"> Reject reason 已映射</label>
+      <label class="checkbox"><input type="checkbox" name="source_policy_reviewed"> Source policy 已复核</label>
+      <label class="checkbox"><input type="checkbox" name="human_review"> 已人工审核</label>
+    </div>
+    <label>处理状态
+      <select name="status">
+        {% for value, label in status_options.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>备注<textarea name="notes" rows="4" placeholder="记录为何阻止、是否可人工小测、要修 validation / suppression / PII / form / buyer feedback 哪一块。"></textarea></label>
+    <label>来源 URL<textarea name="source_urls" rows="4" placeholder="每行一个 FTC、NIST、Google Ads、DNC、buyer contract 或内部 policy URL"></textarea></label>
+    <button class="button" type="submit"><i data-lucide="plus"></i>保存评审</button>
+  </form>
+
+  <div class="panel">
+    <h2>Lead Validation 评审记录</h2>
+    <div class="list">
+      {% for review in reviews %}
+        <div class="list-row">
+          <strong>{{ review.name }}</strong>
+          <span>
+            <span class="badge {{ review.risk_level }}">{{ review.risk_level }}</span>
+            Score {{ review.score }}
+            · {{ review.recommended_action }}
+            · {{ status_options.get(review.status, review.status) }}
+          </span>
+          <small>
+            scope={{ review.validation_scope }}
+            · channel={{ review.lead_channel }}
+            · consent={{ review.consent_status }}
+            · disclosure={{ review.buyer_disclosure_status }}
+          </small>
+          <small>
+            phone={{ review.phone_status }}
+            · email={{ review.email_status }}
+            · geo={{ review.address_geo_status }}
+            · duplicate={{ review.duplicate_status }}
+          </small>
+          <small>
+            suppression={{ review.suppression_status }}
+            · DNC={{ review.dnc_status }}
+            · opt-out={{ review.opt_out_status }}
+            · PII={{ review.pii_minimization_status }}
+            · retention={{ review.retention_status }}
+          </small>
+          <small>
+            usable lead rate={{ "%.2f"|format(review.usable_lead_rate_percent_float) }}%
+            · expected valid leads={{ "%.2f"|format(review.expected_valid_leads_float) }}
+            · safe routing rate={{ "%.2f"|format(review.safe_routing_rate_percent_float) }}%
+          </small>
+          <small>
+            valid={{ "%.2f"|format(review.valid_rate_percent) }}%
+            · invalid contact={{ "%.2f"|format(review.invalid_contact_rate_percent) }}%
+            · duplicate={{ "%.2f"|format(review.duplicate_rate_percent) }}%
+            · reject={{ "%.2f"|format(review.buyer_reject_rate_percent) }}%
+            · complaint={{ "%.2f"|format(review.complaint_rate_percent) }}%
+          </small>
+          {% if review.score_components %}
+            <small>
+              Components:
+              {% for key, value in review.score_components.items() %}
+                {{ key }}={{ value }}{% if not loop.last %} · {% endif %}
+              {% endfor %}
+            </small>
+          {% endif %}
+          {% if review.offer or review.campaign_draft %}
+            <small>
+              {% if review.offer %}Offer: {{ review.offer.name }}{% endif %}
+              {% if review.campaign_draft %} · Campaign: {{ review.campaign_draft.name }}{% endif %}
+            </small>
+          {% endif %}
+          {% if review.blockers %}
+            <ul class="compact">
+              {% for blocker in review.blockers[:8] %}<li>{{ blocker }}</li>{% endfor %}
+            </ul>
+          {% endif %}
+          {% if review.source_urls %}
+            <small>Sources: {{ review.source_urls|join(" | ") }}</small>
+          {% endif %}
+          {% if review.notes %}
+            <p class="muted">{{ review.notes }}</p>
+          {% endif %}
+          <form class="inline-form" method="post" action="{{ url_for('main.update_lead_validation_status', review_id=review.id) }}">
+            <select name="status">
+              {% for value, label in status_options.items() %}
+                <option value="{{ value }}" {% if value == review.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="button ghost" type="submit"><i data-lucide="check"></i>更新状态</button>
+          </form>
+        </div>
+      {% else %}
+        <p class="muted">暂无 Lead Validation 评审。</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1670,6 +1670,114 @@ class CrmValueMappingReview(TimestampMixin, db.Model):
         return float(self.expected_value or 0)
 
 
+class LeadValidationReview(TimestampMixin, db.Model):
+    __tablename__ = "lead_validation_reviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+    offer_id = db.Column(db.Integer, db.ForeignKey("offers.id"), nullable=True)
+    campaign_draft_id = db.Column(
+        db.Integer, db.ForeignKey("campaign_drafts.id"), nullable=True
+    )
+    name = db.Column(db.String(180), nullable=False)
+    vertical = db.Column(db.String(80), nullable=False, default="insurance")
+    geo = db.Column(db.String(80), nullable=True)
+    source_type = db.Column(db.String(80), nullable=False, default="google_search")
+    form_version = db.Column(db.String(120), nullable=True)
+    validation_scope = db.Column(db.String(80), nullable=False, default="pre_routing")
+    lead_channel = db.Column(db.String(60), nullable=False, default="web_form")
+    consent_status = db.Column(db.String(60), nullable=False, default="missing")
+    buyer_disclosure_status = db.Column(
+        db.String(60), nullable=False, default="missing"
+    )
+    phone_status = db.Column(db.String(60), nullable=False, default="unknown")
+    email_status = db.Column(db.String(60), nullable=False, default="unknown")
+    address_geo_status = db.Column(db.String(60), nullable=False, default="unknown")
+    duplicate_status = db.Column(db.String(60), nullable=False, default="missing")
+    suppression_status = db.Column(db.String(60), nullable=False, default="missing")
+    dnc_status = db.Column(db.String(60), nullable=False, default="missing")
+    opt_out_status = db.Column(db.String(60), nullable=False, default="missing")
+    pii_minimization_status = db.Column(
+        db.String(60), nullable=False, default="unknown"
+    )
+    retention_status = db.Column(db.String(60), nullable=False, default="missing")
+    source_policy_status = db.Column(db.String(60), nullable=False, default="unknown")
+    buyer_reject_feedback_status = db.Column(
+        db.String(60), nullable=False, default="missing"
+    )
+    validation_sample_size = db.Column(db.Integer, nullable=False, default=0)
+    valid_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    invalid_contact_rate_percent = db.Column(
+        db.Numeric(6, 2), nullable=False, default=0
+    )
+    duplicate_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    suppression_hit_rate_percent = db.Column(
+        db.Numeric(6, 2), nullable=False, default=0
+    )
+    dnc_hit_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    opt_out_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    bad_geo_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    no_consent_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    buyer_reject_rate_percent = db.Column(
+        db.Numeric(6, 2), nullable=False, default=0
+    )
+    complaint_rate_percent = db.Column(db.Numeric(6, 2), nullable=False, default=0)
+    fields_collected_schema = db.Column(db.Text, nullable=True)
+    validation_rule_summary = db.Column(db.Text, nullable=True)
+    duplicate_rule_summary = db.Column(db.Text, nullable=True)
+    suppression_rule_summary = db.Column(db.Text, nullable=True)
+    pii_handling_notes = db.Column(db.Text, nullable=True)
+    retention_deletion_notes = db.Column(db.Text, nullable=True)
+    buyer_reject_reason_map = db.Column(db.Text, nullable=True)
+    source_form_fix_plan = db.Column(db.Text, nullable=True)
+    incident_notes = db.Column(db.Text, nullable=True)
+    consent_evidence = db.Column(db.Boolean, nullable=False, default=False)
+    buyer_disclosure_reviewed = db.Column(
+        db.Boolean, nullable=False, default=False
+    )
+    field_minimization_reviewed = db.Column(
+        db.Boolean, nullable=False, default=False
+    )
+    duplicate_rule_reviewed = db.Column(db.Boolean, nullable=False, default=False)
+    suppression_dnc_checked = db.Column(db.Boolean, nullable=False, default=False)
+    pii_access_reviewed = db.Column(db.Boolean, nullable=False, default=False)
+    retention_policy_reviewed = db.Column(db.Boolean, nullable=False, default=False)
+    reject_reason_mapped = db.Column(db.Boolean, nullable=False, default=False)
+    source_policy_reviewed = db.Column(db.Boolean, nullable=False, default=False)
+    human_review = db.Column(db.Boolean, nullable=False, default=False)
+    score_components = db.Column(db.JSON, nullable=False, default=dict)
+    score = db.Column(db.Integer, nullable=False, default=0)
+    risk_level = db.Column(db.String(40), nullable=False, default="high")
+    recommended_action = db.Column(
+        db.String(80), nullable=False, default="validation_review"
+    )
+    usable_lead_rate_percent = db.Column(
+        db.Numeric(6, 2), nullable=False, default=0
+    )
+    expected_valid_leads = db.Column(db.Numeric(12, 2), nullable=False, default=0)
+    safe_routing_rate_percent = db.Column(
+        db.Numeric(6, 2), nullable=False, default=0
+    )
+    blockers = db.Column(db.JSON, nullable=False, default=list)
+    status = db.Column(db.String(40), nullable=False, default="open")
+    notes = db.Column(db.Text, nullable=True)
+    source_urls = db.Column(db.JSON, nullable=False, default=list)
+
+    offer = db.relationship("Offer")
+    campaign_draft = db.relationship("CampaignDraft")
+
+    @property
+    def usable_lead_rate_percent_float(self) -> float:
+        return float(self.usable_lead_rate_percent or 0)
+
+    @property
+    def expected_valid_leads_float(self) -> float:
+        return float(self.expected_valid_leads or 0)
+
+    @property
+    def safe_routing_rate_percent_float(self) -> float:
+        return float(self.safe_routing_rate_percent or 0)
+
+
 class PingPostRoutingReview(TimestampMixin, db.Model):
     __tablename__ = "ping_post_routing_reviews"
 
@@ -1959,6 +2067,7 @@ def seed_demo_data() -> None:
         lead_pricing_reviews_added = _seed_demo_lead_pricing_reviews()
         appointment_lead_reviews_added = _seed_demo_appointment_lead_reviews()
         buyer_capacity_reviews_added = _seed_demo_buyer_capacity_reviews()
+        lead_validation_reviews_added = _seed_demo_lead_validation_reviews()
         conversion_signal_reviews_added = _seed_demo_conversion_signal_reviews()
         crm_value_mapping_reviews_added = _seed_demo_crm_value_mapping_reviews()
         ping_post_routing_reviews_added = _seed_demo_ping_post_routing_reviews()
@@ -2083,6 +2192,13 @@ def seed_demo_data() -> None:
                 "seed",
                 f"Inserted {buyer_capacity_reviews_added} demo buyer capacity reviews.",
             )
+        if lead_validation_reviews_added:
+            add_audit(
+                "lead_validation_review",
+                None,
+                "seed",
+                f"Inserted {lead_validation_reviews_added} demo Lead validation reviews.",
+            )
         if conversion_signal_reviews_added:
             add_audit(
                 "conversion_signal_review",
@@ -2109,6 +2225,7 @@ def seed_demo_data() -> None:
             or ping_post_routing_reviews_added
             or crm_value_mapping_reviews_added
             or conversion_signal_reviews_added
+            or lead_validation_reviews_added
             or buyer_capacity_reviews_added
             or appointment_lead_reviews_added
             or claim_reviews_added
@@ -3063,6 +3180,7 @@ def seed_demo_data() -> None:
     _seed_demo_research_sources()
     _seed_demo_conversion_signal_reviews()
     _seed_demo_crm_value_mapping_reviews()
+    _seed_demo_lead_validation_reviews()
     _seed_demo_ping_post_routing_reviews()
     db.session.add(
         OpportunityAssessment(
@@ -4390,6 +4508,132 @@ def _seed_demo_crm_value_mapping_reviews() -> int:
                 "https://support.google.com/google-ads/answer/7012522",
                 "https://developers.google.com/google-ads/api/docs/conversions/upload-clicks",
                 "https://developers.google.com/google-ads/api/docs/conversions/adjust-conversions",
+            ],
+        )
+    )
+    return 1
+
+
+def _seed_demo_lead_validation_reviews() -> int:
+    campaign = CampaignDraft.query.order_by(CampaignDraft.id).first()
+    if not campaign:
+        return 0
+    exists = LeadValidationReview.query.filter_by(
+        campaign_draft_id=campaign.id,
+        name="Demo pre-routing lead validation gate",
+    ).first()
+    if exists:
+        return 0
+
+    db.session.add(
+        LeadValidationReview(
+            offer_id=campaign.offer_id,
+            campaign_draft_id=campaign.id,
+            name="Demo pre-routing lead validation gate",
+            vertical="insurance",
+            geo="US",
+            source_type="google_search",
+            form_version="form_v2026_06_consent_a",
+            validation_scope="pre_routing",
+            lead_channel="web_form",
+            consent_status="buyer_scope_reviewed",
+            buyer_disclosure_status="contract_reviewed",
+            phone_status="normalized",
+            email_status="normalized",
+            address_geo_status="buyer_service_area",
+            duplicate_status="source_buyer_windowed",
+            suppression_status="ready",
+            dnc_status="checked",
+            opt_out_status="checked",
+            pii_minimization_status="hashed_minimized",
+            retention_status="deletion_ready",
+            source_policy_status="buyer_approved",
+            buyer_reject_feedback_status="paid_feedback_ready",
+            validation_sample_size=500,
+            valid_rate_percent=Decimal("86.00"),
+            invalid_contact_rate_percent=Decimal("4.00"),
+            duplicate_rate_percent=Decimal("2.00"),
+            suppression_hit_rate_percent=Decimal("0.80"),
+            dnc_hit_rate_percent=Decimal("0.30"),
+            opt_out_rate_percent=Decimal("0.40"),
+            bad_geo_rate_percent=Decimal("1.20"),
+            no_consent_rate_percent=Decimal("0.50"),
+            buyer_reject_rate_percent=Decimal("6.00"),
+            complaint_rate_percent=Decimal("0.10"),
+            fields_collected_schema=(
+                "Operational IDs, consent version, source/form version, zip/state, "
+                "qualification answers and phone/email hash. Raw contact fields are "
+                "not written to URLs, subids, logs or AI prompts."
+            ),
+            validation_rule_summary=(
+                "Schema, consent, format normalization, duplicate hash, suppression, "
+                "DNC, opt-out, geo eligibility, source policy and buyer reject feedback "
+                "are checked before routing."
+            ),
+            duplicate_rule_summary=(
+                "Same phone/email hash 30d, same buyer campaign 90d and transaction_id "
+                "forever. Event duplicates do not create additional conversions."
+            ),
+            suppression_rule_summary=(
+                "Suppression, DNC, opt-out and consent revocation hashes are checked "
+                "before any buyer handoff and resynced after complaint events."
+            ),
+            pii_handling_notes=(
+                "Duplicate checks use salted hashes; raw contact fields are available "
+                "only for approved handoff roles and are excluded from exports by default."
+            ),
+            retention_deletion_notes=(
+                "Raw lead detail has a defined retention window; consent evidence and "
+                "suppression hashes have separate retention/deletion workflows."
+            ),
+            buyer_reject_reason_map=(
+                "invalid_contact, duplicate, bad_geo, no_consent, cap_reached, "
+                "low_intent and prohibited_source map back to source/form fixes."
+            ),
+            source_form_fix_plan=(
+                "Reject spikes open source quarantine, form copy review, disclosure "
+                "version review and geo/qualification rule repair."
+            ),
+            incident_notes="No open suppression, DNC, opt-out or complaint incident for the demo cohort.",
+            consent_evidence=True,
+            buyer_disclosure_reviewed=True,
+            field_minimization_reviewed=True,
+            duplicate_rule_reviewed=True,
+            suppression_dnc_checked=True,
+            pii_access_reviewed=True,
+            retention_policy_reviewed=True,
+            reject_reason_mapped=True,
+            source_policy_reviewed=True,
+            human_review=True,
+            score_components={
+                "consent_integrity": 20,
+                "contact_format_quality": 15,
+                "duplicate_safety": 15,
+                "suppression_clearance": 15,
+                "geo_offer_fit": 10,
+                "source_policy_fit": 10,
+                "buyer_feedback_quality": 10,
+                "pii_minimization_retention": 5,
+            },
+            score=100,
+            risk_level="low",
+            recommended_action="validation_ready",
+            usable_lead_rate_percent=Decimal("76.56"),
+            expected_valid_leads=Decimal("382.80"),
+            safe_routing_rate_percent=Decimal("76.56"),
+            blockers=[],
+            status="open",
+            notes=(
+                "Demo: the cohort is ready for human-supervised routing because "
+                "consent, suppression, DNC, opt-out, duplicate, PII and reject "
+                "feedback controls are present."
+            ),
+            source_urls=[
+                "https://www.ftc.gov/business-guidance/resources/protecting-personal-information-guide-business",
+                "https://www.ftc.gov/business-guidance/resources/complying-telemarketing-sales-rule",
+                "https://telemarketing.donotcall.gov/",
+                "https://csrc.nist.gov/pubs/sp/800/122/final",
+                "https://support.google.com/analytics/answer/6366371",
             ],
         )
     )

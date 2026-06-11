@@ -32,6 +32,7 @@ from .models import (
     CreativeSet,
     CplVerticalReview,
     DecisionWindowReview,
+    LeadValidationReview,
     LeadPricingReview,
     LinkRule,
     MetricDaily,
@@ -68,6 +69,7 @@ from .services.decision_window import calculate_decision_window
 from .services.exporters import campaign_to_google_ads_editor_csv
 from .services.exporters import campaign_to_scripts_payload
 from .services.landing import audit_landing_page
+from .services.lead_validation import calculate_lead_validation_review
 from .services.lead_pricing import calculate_lead_pricing_review
 from .services.markdown_render import render_markdown
 from .services.offer_cap import calculate_offer_cap_review
@@ -378,6 +380,23 @@ PING_POST_ROUTING_REVIEW_STATUSES = {
     "manual_test": "人工小测",
     "routing_ready": "Routing 就绪",
     "blocked": "阻止投放",
+    "closed": "已关闭",
+}
+
+LEAD_VALIDATION_REVIEW_STATUSES = {
+    "open": "待复核",
+    "reviewed": "已复核",
+    "consent_review": "Consent / disclosure 复核",
+    "contact_validation": "联系字段验证",
+    "duplicate_review": "去重窗口复核",
+    "suppression_review": "Suppression / DNC 复核",
+    "pii_review": "PII 最小化复核",
+    "retention_review": "保留删除复核",
+    "reject_reason_review": "Buyer reject 复核",
+    "source_fix": "Source / 表单修复",
+    "manual_test": "人工小测",
+    "validation_ready": "验证就绪",
+    "blocked": "阻止路由",
     "closed": "已关闭",
 }
 
@@ -1373,6 +1392,78 @@ BLOCKED_PING_POST_ROUTING_TERMS = (
     "隐藏 buyer",
     "未披露共享",
     "伪造同意",
+    "登录态",
+    "浏览器profile",
+    "代理池",
+    "指纹",
+    "worker转发",
+    "审核页",
+    "用户页",
+    "绕审核",
+    "换号",
+    "封禁后",
+)
+
+BLOCKED_LEAD_VALIDATION_TERMS = (
+    "fake lead",
+    "fabricate lead",
+    "generate lead",
+    "auto submit",
+    "automatic submit",
+    "auto post",
+    "automatic post",
+    "auto call",
+    "robocall",
+    "sms blast",
+    "mass sms",
+    "bypass consent",
+    "bypass dnc",
+    "bypass opt-out",
+    "hidden buyer",
+    "undisclosed shared",
+    "fake consent",
+    "enrich pii",
+    "scrape pii",
+    "append phone",
+    "append email",
+    "cookie",
+    "session token",
+    "browser profile",
+    "proxy pool",
+    "fingerprint",
+    "worker forward",
+    "anti-detect",
+    "cloaking",
+    "review page",
+    "user page",
+    "switch account",
+    "ban evasion",
+    "伪造线索",
+    "伪造lead",
+    "伪造 lead",
+    "补lead",
+    "补 lead",
+    "自动提交",
+    "自动post",
+    "自动 post",
+    "自动外呼",
+    "群发短信",
+    "绕过同意",
+    "绕consent",
+    "绕 consent",
+    "绕dnc",
+    "绕 dnc",
+    "绕过dnc",
+    "绕过 dnc",
+    "绕过退订",
+    "隐藏buyer",
+    "隐藏 buyer",
+    "未披露共享",
+    "伪造同意",
+    "补全手机号",
+    "补全邮箱",
+    "抓取pii",
+    "抓取 pii",
     "登录态",
     "浏览器profile",
     "代理池",
@@ -5020,6 +5111,300 @@ def update_crm_value_mapping_status(review_id: int):
         "success",
     )
     return redirect(url_for("main.crm_value_mapping"))
+
+
+@bp.route("/lead-validation", methods=["GET", "POST"])
+def lead_validation():
+    offers = Offer.query.order_by(Offer.name).all()
+    campaigns = CampaignDraft.query.order_by(CampaignDraft.created_at.desc()).all()
+    if request.method == "POST":
+        review_text = " ".join(
+            [
+                request.form.get("name", ""),
+                request.form.get("vertical", ""),
+                request.form.get("geo", ""),
+                request.form.get("source_type", ""),
+                request.form.get("form_version", ""),
+                request.form.get("fields_collected_schema", ""),
+                request.form.get("validation_rule_summary", ""),
+                request.form.get("duplicate_rule_summary", ""),
+                request.form.get("suppression_rule_summary", ""),
+                request.form.get("pii_handling_notes", ""),
+                request.form.get("retention_deletion_notes", ""),
+                request.form.get("buyer_reject_reason_map", ""),
+                request.form.get("source_form_fix_plan", ""),
+                request.form.get("incident_notes", ""),
+                request.form.get("notes", ""),
+                request.form.get("source_urls", ""),
+            ]
+        ).lower()
+        if any(term in review_text for term in BLOCKED_LEAD_VALIDATION_TERMS):
+            flash(
+                "Lead 验证评审包含伪造/补全 lead、自动提交/外呼/短信、绕 consent/DNC/opt-out、抓取或扩散 PII、Cookie 登录态、代理指纹、cloaking 或换号语义；本系统只允许安全验证口径、治理状态和人工审计。",
+                "warning",
+            )
+            return redirect(url_for("main.lead_validation"))
+
+        valid_rate_percent = decimal_value(request.form.get("valid_rate_percent"))
+        invalid_contact_rate_percent = decimal_value(
+            request.form.get("invalid_contact_rate_percent")
+        )
+        duplicate_rate_percent = decimal_value(
+            request.form.get("duplicate_rate_percent")
+        )
+        suppression_hit_rate_percent = decimal_value(
+            request.form.get("suppression_hit_rate_percent")
+        )
+        dnc_hit_rate_percent = decimal_value(
+            request.form.get("dnc_hit_rate_percent")
+        )
+        opt_out_rate_percent = decimal_value(
+            request.form.get("opt_out_rate_percent")
+        )
+        bad_geo_rate_percent = decimal_value(
+            request.form.get("bad_geo_rate_percent")
+        )
+        no_consent_rate_percent = decimal_value(
+            request.form.get("no_consent_rate_percent")
+        )
+        buyer_reject_rate_percent = decimal_value(
+            request.form.get("buyer_reject_rate_percent")
+        )
+        complaint_rate_percent = decimal_value(
+            request.form.get("complaint_rate_percent")
+        )
+
+        consent_evidence = request.form.get("consent_evidence") == "on"
+        buyer_disclosure_reviewed = (
+            request.form.get("buyer_disclosure_reviewed") == "on"
+        )
+        field_minimization_reviewed = (
+            request.form.get("field_minimization_reviewed") == "on"
+        )
+        duplicate_rule_reviewed = (
+            request.form.get("duplicate_rule_reviewed") == "on"
+        )
+        suppression_dnc_checked = (
+            request.form.get("suppression_dnc_checked") == "on"
+        )
+        pii_access_reviewed = request.form.get("pii_access_reviewed") == "on"
+        retention_policy_reviewed = (
+            request.form.get("retention_policy_reviewed") == "on"
+        )
+        reject_reason_mapped = request.form.get("reject_reason_mapped") == "on"
+        source_policy_reviewed = request.form.get("source_policy_reviewed") == "on"
+        human_review = request.form.get("human_review") == "on"
+
+        fields_collected_schema = request.form.get(
+            "fields_collected_schema", ""
+        ).strip()
+        validation_rule_summary = request.form.get(
+            "validation_rule_summary", ""
+        ).strip()
+        duplicate_rule_summary = request.form.get(
+            "duplicate_rule_summary", ""
+        ).strip()
+        suppression_rule_summary = request.form.get(
+            "suppression_rule_summary", ""
+        ).strip()
+        pii_handling_notes = request.form.get("pii_handling_notes", "").strip()
+        retention_deletion_notes = request.form.get(
+            "retention_deletion_notes", ""
+        ).strip()
+        buyer_reject_reason_map = request.form.get(
+            "buyer_reject_reason_map", ""
+        ).strip()
+        source_form_fix_plan = request.form.get("source_form_fix_plan", "").strip()
+        incident_notes = request.form.get("incident_notes", "").strip()
+
+        result = calculate_lead_validation_review(
+            consent_status=request.form.get("consent_status", "missing"),
+            buyer_disclosure_status=request.form.get(
+                "buyer_disclosure_status", "missing"
+            ),
+            phone_status=request.form.get("phone_status", "unknown"),
+            email_status=request.form.get("email_status", "unknown"),
+            address_geo_status=request.form.get("address_geo_status", "unknown"),
+            duplicate_status=request.form.get("duplicate_status", "missing"),
+            suppression_status=request.form.get("suppression_status", "missing"),
+            dnc_status=request.form.get("dnc_status", "missing"),
+            opt_out_status=request.form.get("opt_out_status", "missing"),
+            pii_minimization_status=request.form.get(
+                "pii_minimization_status", "unknown"
+            ),
+            retention_status=request.form.get("retention_status", "missing"),
+            source_policy_status=request.form.get("source_policy_status", "unknown"),
+            buyer_reject_feedback_status=request.form.get(
+                "buyer_reject_feedback_status", "missing"
+            ),
+            validation_sample_size=_int(
+                request.form.get("validation_sample_size")
+            ),
+            valid_rate_percent=float(valid_rate_percent),
+            invalid_contact_rate_percent=float(invalid_contact_rate_percent),
+            duplicate_rate_percent=float(duplicate_rate_percent),
+            suppression_hit_rate_percent=float(suppression_hit_rate_percent),
+            dnc_hit_rate_percent=float(dnc_hit_rate_percent),
+            opt_out_rate_percent=float(opt_out_rate_percent),
+            bad_geo_rate_percent=float(bad_geo_rate_percent),
+            no_consent_rate_percent=float(no_consent_rate_percent),
+            buyer_reject_rate_percent=float(buyer_reject_rate_percent),
+            complaint_rate_percent=float(complaint_rate_percent),
+            fields_collected_schema=fields_collected_schema,
+            validation_rule_summary=validation_rule_summary,
+            duplicate_rule_summary=duplicate_rule_summary,
+            suppression_rule_summary=suppression_rule_summary,
+            pii_handling_notes=pii_handling_notes,
+            retention_deletion_notes=retention_deletion_notes,
+            buyer_reject_reason_map=buyer_reject_reason_map,
+            source_form_fix_plan=source_form_fix_plan,
+            incident_notes=incident_notes,
+            consent_evidence=consent_evidence,
+            buyer_disclosure_reviewed=buyer_disclosure_reviewed,
+            field_minimization_reviewed=field_minimization_reviewed,
+            duplicate_rule_reviewed=duplicate_rule_reviewed,
+            suppression_dnc_checked=suppression_dnc_checked,
+            pii_access_reviewed=pii_access_reviewed,
+            retention_policy_reviewed=retention_policy_reviewed,
+            reject_reason_mapped=reject_reason_mapped,
+            source_policy_reviewed=source_policy_reviewed,
+            human_review=human_review,
+        )
+
+        offer_id = request.form.get("offer_id")
+        campaign_id = request.form.get("campaign_draft_id")
+        source_urls = [
+            item.strip()
+            for item in request.form.get("source_urls", "").splitlines()
+            if item.strip()
+        ]
+        review = LeadValidationReview(
+            offer_id=int(offer_id) if offer_id else None,
+            campaign_draft_id=int(campaign_id) if campaign_id else None,
+            name=request.form["name"].strip(),
+            vertical=request.form.get("vertical", "insurance"),
+            geo=request.form.get("geo", "").strip() or None,
+            source_type=request.form.get("source_type", "google_search"),
+            form_version=request.form.get("form_version", "").strip() or None,
+            validation_scope=request.form.get("validation_scope", "pre_routing"),
+            lead_channel=request.form.get("lead_channel", "web_form"),
+            consent_status=request.form.get("consent_status", "missing"),
+            buyer_disclosure_status=request.form.get(
+                "buyer_disclosure_status", "missing"
+            ),
+            phone_status=request.form.get("phone_status", "unknown"),
+            email_status=request.form.get("email_status", "unknown"),
+            address_geo_status=request.form.get("address_geo_status", "unknown"),
+            duplicate_status=request.form.get("duplicate_status", "missing"),
+            suppression_status=request.form.get("suppression_status", "missing"),
+            dnc_status=request.form.get("dnc_status", "missing"),
+            opt_out_status=request.form.get("opt_out_status", "missing"),
+            pii_minimization_status=request.form.get(
+                "pii_minimization_status", "unknown"
+            ),
+            retention_status=request.form.get("retention_status", "missing"),
+            source_policy_status=request.form.get("source_policy_status", "unknown"),
+            buyer_reject_feedback_status=request.form.get(
+                "buyer_reject_feedback_status", "missing"
+            ),
+            validation_sample_size=_int(
+                request.form.get("validation_sample_size")
+            ),
+            valid_rate_percent=valid_rate_percent,
+            invalid_contact_rate_percent=invalid_contact_rate_percent,
+            duplicate_rate_percent=duplicate_rate_percent,
+            suppression_hit_rate_percent=suppression_hit_rate_percent,
+            dnc_hit_rate_percent=dnc_hit_rate_percent,
+            opt_out_rate_percent=opt_out_rate_percent,
+            bad_geo_rate_percent=bad_geo_rate_percent,
+            no_consent_rate_percent=no_consent_rate_percent,
+            buyer_reject_rate_percent=buyer_reject_rate_percent,
+            complaint_rate_percent=complaint_rate_percent,
+            fields_collected_schema=fields_collected_schema or None,
+            validation_rule_summary=validation_rule_summary or None,
+            duplicate_rule_summary=duplicate_rule_summary or None,
+            suppression_rule_summary=suppression_rule_summary or None,
+            pii_handling_notes=pii_handling_notes or None,
+            retention_deletion_notes=retention_deletion_notes or None,
+            buyer_reject_reason_map=buyer_reject_reason_map or None,
+            source_form_fix_plan=source_form_fix_plan or None,
+            incident_notes=incident_notes or None,
+            consent_evidence=consent_evidence,
+            buyer_disclosure_reviewed=buyer_disclosure_reviewed,
+            field_minimization_reviewed=field_minimization_reviewed,
+            duplicate_rule_reviewed=duplicate_rule_reviewed,
+            suppression_dnc_checked=suppression_dnc_checked,
+            pii_access_reviewed=pii_access_reviewed,
+            retention_policy_reviewed=retention_policy_reviewed,
+            reject_reason_mapped=reject_reason_mapped,
+            source_policy_reviewed=source_policy_reviewed,
+            human_review=human_review,
+            score_components=result["score_components"],
+            score=int(result["score"]),
+            risk_level=str(result["risk_level"]),
+            recommended_action=str(result["recommended_action"]),
+            usable_lead_rate_percent=decimal_value(
+                result["usable_lead_rate_percent"]
+            ),
+            expected_valid_leads=decimal_value(result["expected_valid_leads"]),
+            safe_routing_rate_percent=decimal_value(
+                result["safe_routing_rate_percent"]
+            ),
+            blockers=result["blockers"],
+            status=request.form.get("status", "open"),
+            notes=request.form.get("notes", "").strip() or None,
+            source_urls=source_urls,
+        )
+        if review.status not in LEAD_VALIDATION_REVIEW_STATUSES:
+            flash("Lead 验证评审状态不允许。", "warning")
+            return redirect(url_for("main.lead_validation"))
+        db.session.add(review)
+        db.session.flush()
+        add_audit(
+            "lead_validation_review",
+            review.id,
+            "create",
+            f"Created Lead validation review {review.name} with score {review.score}.",
+        )
+        db.session.commit()
+        flash(
+            "Lead 验证评审已保存。它只记录 consent、去重、suppression、DNC、PII、retention 和 buyer reject 治理状态，不自动补 lead、不外呼、不短信、不转发真实 PII。",
+            "success",
+        )
+        return redirect(url_for("main.lead_validation"))
+
+    return render_template(
+        "lead_validation.html",
+        reviews=LeadValidationReview.query.order_by(
+            LeadValidationReview.created_at.desc()
+        ).all(),
+        offers=offers,
+        campaigns=campaigns,
+        status_options=LEAD_VALIDATION_REVIEW_STATUSES,
+    )
+
+
+@bp.post("/lead-validation/<int:review_id>/status")
+def update_lead_validation_status(review_id: int):
+    review = LeadValidationReview.query.get_or_404(review_id)
+    status = request.form.get("status", "open")
+    if status not in LEAD_VALIDATION_REVIEW_STATUSES:
+        flash("Lead 验证评审状态不允许。", "warning")
+        return redirect(url_for("main.lead_validation"))
+    old_status = review.status
+    review.status = status
+    add_audit(
+        "lead_validation_review",
+        review.id,
+        "status_update",
+        f"Lead validation review {review.name} changed from {old_status} to {status}.",
+    )
+    db.session.commit()
+    flash(
+        "Lead 验证状态已更新。状态只代表内部评审，不会自动提交、外呼、短信、绕过 suppression/DNC/opt-out 或操作 buyer 后台。",
+        "success",
+    )
+    return redirect(url_for("main.lead_validation"))
 
 
 @bp.route("/ping-post-routing", methods=["GET", "POST"])
